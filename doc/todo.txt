@@ -3,37 +3,15 @@ CODEPOINT
 TO-DO
 Other
   - Rename Git remote repository to Myeloma Resources DONE
-  - Create separate repository for Handy.js
-  - Rewrite init script to pull Myeloma Resources and Handy.js separately
+  - Create separate repository for Handy.js DONE
+  - Rewrite init script to pull Myeloma Resources and Handy.js separately DONE
   - Set up Linode so you can push updates to production using Git
-
-Test functionality
-  - backup DONE
-  - chron DONE
-  - non-admin user creates and answers Q&A DONE
-  - unauthenticated user answers Q&A DONE
-
-Create '/administration' page with links to all admin activity (ie. configuration and permissions)
-
-Reimage Linode and install Ubuntu 14.04 (plus only needed software)
-  - uninstall Apache, PHP and Nginx PHP stuff (Can't remember the name)
-  - Upgrade MySQL DONE
-  - Insert actual text (use four different personas)
-  - ensure handyjs.org is preserved DONE
-  - Install Git DONE
-
-
-General
-  - replace all double array comparison searches with _.findWhere or _.where
-  - look through initialization and installation to ensure both processes lead to same state
-  - Are cookies being handled right?  Handy sets a cookie but App does not?  Should there be multiple cookies? No
   
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
 
 
-Handy Functionality
-  - Reporting - Email daily activity reports (e.g. number of questions asked/answered, number of new tips, registrations, etc)
+Cache
   - Cache category display (if needed)
   - Cache findContent
 
@@ -42,9 +20,14 @@ Logging
   - content activity (viewing, creation, deletion, publishing)
   - errors (system errors and exceptions, )
   - system (cron activity, email sent, backups, XML sitemap submission, )
+  - reports (daily email of activity reports - questions asked/answered, new tips, comments, signups, logins)
 
 Permissions system 
  - write forms to assign or unassign roles to users
+
+General
+  - '/administration' - provide links to all admin activity (configuration, permissions, etc)
+  - replace all double array comparison searches with _.findWhere or _.where
 
 Code Samples
  - content editing form routing

@@ -9,6 +9,7 @@
 module.exports = function(app){
   var siteinstall = express.Router();
   var router = express.Router();
+
   // test form: used to quickly perform tests of various scenarios
   app.post('/testpage', handy.user.checkPermission('system.System', ['can run tests']), function(req, res, next){
     handy.system.backupDatabase(req, res, function(err){
@@ -24,7 +25,6 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', 'something went wrong with the installation!\n' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
       } else {
-
         res.redirect('/configuration');
       }
     });
