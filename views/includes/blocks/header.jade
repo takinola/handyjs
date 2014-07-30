@@ -1,0 +1,27 @@
+- if (!pageInfo.config.siteName)
+    siteName = 'Brand new handy.js site'
+
+nav.navbar.navbar-custom.navbar-static-top(role='navigation')
+  // Brand and Toggle are grouped for better mobile display
+  .container-fluid
+    .navbar-header
+      button.navbar-toggle(type='button', data-toggle='collapse', data-target='#navbar-collapse')
+        span.sr-only Toggle navigation only
+        span.icon-bar
+        span.icon-bar
+        span.icon-bar
+        
+      a.navbar-brand(href='/') #{pageInfo.config.siteName}
+      
+    .collapse.navbar-collapse(id='login-logout')
+      ul.nav.navbar-nav.navbar-right
+        li
+          a(href='/') Tips
+        li
+          a(href='/qanda') Q+A
+        li
+          if (pageInfo.user.authenticated === true)  
+            a(href='/logout') Logout
+          else
+            a(href='/login') Login
+

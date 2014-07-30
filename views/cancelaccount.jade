@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  .container-fluid.spacer.fill-screen-height
+    .page-header.well
+      h1 Account cancellation
+        br
+        small
+          | Caution: Disabling this account may not be reversible  
+    .row
+      .col-md-12
+        include includes/forms/cancelAccount

@@ -1,0 +1,62 @@
+form.form-horizontal(id='siteInstall', name='siteInstall', action='/siteinstall', method='post', role='form')
+  include ../components/csrf.jade
+
+  .row
+    .col-xs-11
+      h4 Site information 
+        small &nbsp; Basic site identification details
+      .well
+        .form-group
+          label.control-label.col-xs-2(for='siteName') Site name
+          .col-xs-8
+            input.form-control(type='text', id='siteName', name='siteName', placeholder='Public name of your website', required)
+        
+        .form-group
+          label.control-label.col-xs-2(for='siteEmail') Site email
+          .col-xs-8
+            input.form-control(type='email', id='siteEmail', name='siteEmail', placeholder='e.g. admin@mysite.com', required)
+            span.help-block Automated emails, such as registration information, will be sent from this address.  It is usually a good idea to use an address ending in your site's domain to prevent your emails from being flagged as spam. 
+
+  .row
+    .col-xs-11
+      h4 Database configuration 
+        small &nbsp; Database access information
+      .well
+        .form-group
+          label.control-label.col-xs-2(for='dbName') Database name
+          .col-xs-8
+            input.form-control(type='text', id='dbName', name='dbName', placeholder='Name of your database', required)
+        .form-group
+          label.control-label.col-xs-2(for='dbUser') Database user
+          .col-xs-8
+            input.form-control(type='text', id='dbUser', name='dbUser', placeholder='Username on database', required)
+        .form-group
+          label.control-label.col-xs-2(for='dbPassword') Database password
+          .col-xs-8
+            input.form-control(type='password', id='dbPassword', name='dbPassword', placeholder='Database password', required)    
+
+  .row
+    .col-xs-11
+      h4 Site administrator 
+        small &nbsp; Site admin account setup
+      .well
+        .form-group
+          label.control-label.col-xs-2(for='adminName') Admin username
+          .col-xs-8
+            input.form-control(type='text', id='adminName', name='adminName', placeholder='Site administrator username', required)
+        .form-group
+          label.control-label.col-xs-2(for='adminEmail') Admin email
+          .col-xs-8
+            input.form-control(type='email', id='adminEmail', name='adminEmail', placeholder='e.g. name@gmail.com', required)
+        .form-group
+          label.control-label.col-xs-2(for='adminPassword') Admin password
+          .col-xs-8
+            input.form-control(type='password', id='adminPassword', name='adminPassword', placeholder='Password', required)
+        .form-group
+          label.control-label.col-xs-2(for='adminPasswordConf') Confirm password
+          .col-xs-8
+            input.form-control(type='password', id='adminPasswordConf', name='adminPasswordConf', placeholder='Type in password again', required)
+      
+  .form-group
+    .col-xs-offset-2.col-xs-8
+      button.btn.btn-primary(type='submit') Begin installation

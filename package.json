@@ -1,0 +1,43 @@
+{
+  "name": "handy",
+  "version": "0.0.1",
+  "description": "Handy is a CMS built on Node.js.  It's design goals are simplicity, speed and extensibility.",
+  "main": ".lib/handy.js",
+  "scripts": {
+    "test": "make test"
+  },
+  "dependencies": {
+    "express": "4.4.3",
+    "compression": "1.0.7",
+    "serve-favicon": "2.0.1",
+    "body-parser": "1.3.1",
+    "method-override": "2.0.2",
+    "morgan": "1.1.1",
+    "cookie-parser": "1.3.1",
+    "express-session": "1.5.0",
+    "csurf": "1.2.2",
+    "async": "0.2.8",
+    "underscore": "1.4.4",
+    "mysql": "2.0.0-alpha9",
+    "emailjs": "0.3.6",
+    "acl": "0.4.2",
+    "redis": "0.10.3",
+    "jade": "1.3.1",
+    "connect-redis": "2.0.0",
+    "sol-redis-pool": "0.1.3",
+    "cache-manager": "0.3.0"
+  },
+  "devDependencies": {
+    "expect.js": "0.2.0",
+    "zombie": "2.0.0-alpha24"
+  },
+  "repository": "",
+  "keywords": [
+    "CMS",
+    "content",
+    "management",
+    "system"
+  ],
+  "author": "Tolu Akinola",
+  "license": "AGPL"
+}

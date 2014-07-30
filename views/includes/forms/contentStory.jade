@@ -1,0 +1,65 @@
+- var action = pageInfo.other.action
+- action = action.substr(0,1).toUpperCase() + action.substr(1).toLowerCase()
+- var defaultValue = pageInfo.other.defaultValue || {}
+- var titleValue = defaultValue.titleValue || null
+- var bodyValue = defaultValue.bodyValue || null
+- var urlValue = defaultValue.urlValue || ''
+- urlValue = urlValue.split('/').pop().toString('/')
+- var publishValue = defaultValue.publishValue || 1
+- publishValue = (publishValue === 1)
+- var contentType = pageInfo.other.contentType
+- var siteUrl = pageInfo.siteinfo.protocol + '://' + pageInfo.siteinfo.host + '/' + contentType.toLowerCase() + '/'
+- var contentId = pageInfo.other.contentId || null
+
+//- set form inputs to be disabled, if this is a delete form
+- var disabled = (action.toLowerCase() === 'delete') ? true : false;
+
+form.form-horizontal(name='contentStory', id='contentStory', action='/content/story/' + contentId + '/' + action.toLowerCase(), method='post', role='form')
+  include ../components/csrf.jade
+  legend #{action} story
+  .form-group
+    label.control-label.col-xs-2(for='title') Title
+    .col-xs-9
+      input.form-control(type='text', id='title', name='title', placeholder='e.g. Latest blog entry', value=titleValue, disabled=disabled, required)
+  
+  .form-group
+    label.control-label.col-xs-2(for='body') Body
+    .col-xs-9
+      textarea.form-control(rows=15, id='body', name='body', disabled=disabled, required) #{bodyValue}
+      span.help-block All HTML tags are filtered before display
+  
+  .form-group
+    label.control-label.col-xs-2(for='url') Url
+    .col-xs-9
+      .input-group
+        span.input-group-addon #{siteUrl}
+        input.form-control(type='text', id='url', name='url', placeholder='will be filled automatically if left blank', value=urlValue, disabled=disabled)
+  
+  .form-group
+    label.control-label.col-xs-2(for='category') Category
+    .col-xs-4
+      select.form-control(name='category', id='category', disabled=disabled)
+        each cat in pageInfo.other.categoryOptions
+          option(value=cat.value, selected=cat.selected)
+            != cat.text
+    
+    .col-xs-offset-1.col-xs-4
+      .checkbox
+        label
+          input(type='checkbox', id='published', name='published', value='true', checked=publishValue, disabled=disabled)
+          | Published
+
+  .form-group
+    .col-xs-offset-2.col-xs-7
+      if !disabled
+        - var buttonText;
+        case action.toLowerCase()
+          when 'create'
+            - buttonText = 'Save new ' + contentType.toLowerCase()
+          when 'edit'
+            - buttonText = 'Save changes to ' + contentType.toLowerCase()
+        button.btn.btn-primary(type='submit') #{buttonText}
+      else
+        button.btn.btn-danger(type='submit') Yes, #{action.toLowerCase()} #{contentType.toLowerCase()}
+        | &nbsp;&nbsp;&nbsp;
+        a.btn.btn-info(href=siteUrl + urlValue) No, do not #{action.toLowerCase()} #{contentType.toLowerCase()} 

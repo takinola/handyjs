@@ -1,0 +1,65 @@
+mixin rolesheader(role)
+  th #{role}
+
+mixin permissionform(list, defaultlist, rpg, resource)
+  - list = list.concat(defaultlist)
+  each permission in list
+    tr
+      td &nbsp;&nbsp;&nbsp;#{permission}
+      each perm, role in rpg
+        +rolecheckbox(resource, permission, role, perm)
+
+mixin tablesubheader(count, prefix, suffix)
+  tr
+    - if (suffix !== '*')
+      td(colspan= count)
+         strong #{prefix}.#{suffix}
+
+mixin rolecheckbox(resource, permission, role, perm)
+    td
+      - var checkStatus = false
+      - var disabledStatus = false
+      
+      -if(role === 'administrator')
+        - checkStatus = true
+        - disabledStatus = true
+        
+      
+      - var resourceArray = Object.keys(perm);
+      - var resourceExistFlag = false
+      - var resourceKey
+      
+      each res in resourceArray
+        - if(res.toLowerCase() === resource.toLowerCase())
+          - resourceExistFlag = true
+          - resourceKey = res
+      
+      - if (resourceExistFlag)
+        each permit in perm[resourceKey]
+          - if(permit.toLowerCase() === permission.toLowerCase())
+            - checkStatus = true;
+  
+      input(type='checkbox', checked=checkStatus, disabled=disabledStatus, id=role+'_'+resource+'_'+permission, name=role+'_'+resource+'_'+permission)
+
+form(name='permissionUpdate', id='permissionUpdate', action='/permissionupdate', method='post', role='form')
+  include ../components/csrf.jade
+  table.table.table-striped.table-bordered.table-condensed
+    thead
+      tr
+        th
+        - var colcount = 1
+        - var rpg = pageInfo.other.rolesPermissionGrant
+        each permission, role in rpg
+          +rolesheader(role)
+          - colcount++
+    tbody
+      - var defaultPermissionList
+      each resourcePermissions, resourcePrefix in pageInfo.other.resourcePermissionList
+        - defaultPermissionList = resourcePermissions['*'] || []
+        each permissionlist, resourceSuffix in resourcePermissions
+          +tablesubheader(colcount, resourcePrefix, resourceSuffix)
+          - if(resourceSuffix !== '*')
+            - var resource = resourcePrefix + '.' + resourceSuffix
+            +permissionform(permissionlist, defaultPermissionList, rpg, resource)
+  
+  button.btn.btn-primary(type='submit') Update role permissions

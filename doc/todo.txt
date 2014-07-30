@@ -1,0 +1,159 @@
+CODEPOINT
+
+TO-DO
+Other
+  - Rename Git remote repository to Myeloma Resources
+  - Create separate repository for Handy.js
+  - Rewrite init script to pull Myeloma Resources and Handy.js separately
+  - Set up Linode so you can push updates to production using Git
+
+Test functionality
+  - backup DONE
+  - chron DONE
+  - non-admin user creates and answers Q&A DONE
+  - unauthenticated user answers Q&A DONE
+
+Create '/administration' page with links to all admin activity (ie. configuration and permissions)
+
+Reimage Linode and install Ubuntu 14.04 (plus only needed software)
+  - uninstall Apache, PHP and Nginx PHP stuff (Can't remember the name)
+  - Upgrade MySQL DONE
+  - Insert actual text (use four different personas)
+  - ensure handyjs.org is preserved DONE
+  - Install Git DONE
+
+
+General
+  - replace all double array comparison searches with _.findWhere or _.where
+  - look through initialization and installation to ensure both processes lead to same state
+  - Are cookies being handled right?  Handy sets a cookie but App does not?  Should there be multiple cookies? No
+  
+Tests
+  - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
+
+
+Handy Functionality
+  - Reporting - Email daily activity reports (e.g. number of questions asked/answered, number of new tips, registrations, etc)
+  - Cache category display (if needed)
+  - Cache findContent
+
+Logging
+  - user activity (login, logout, registration, password reset, account cancellation)
+  - content activity (viewing, creation, deletion, publishing)
+  - errors (system errors and exceptions, )
+  - system (cron activity, email sent, backups, XML sitemap submission, )
+
+Permissions system 
+ - write forms to assign or unassign roles to users
+
+Code Samples
+ - content editing form routing
+ - form validation
+ - define new content types
+ - express subclassing
+ - send email based on templates
+
+
+DONE List
+General
+  - change spaces to dashes not plus
+  - Add FAQ and Q&A page
+  - fix wonky system message display on some pages (welcomepage is good)
+  - harmonize layout between handy and djlist (there should be a programatic way to do this)
+  - figure out how to handle 'view content' permission. i.e. unauthenticated users
+  - Integrate Mandrill for transactional emails
+  - Themeing
+
+SEO
+  - add meta-tags
+    - description
+    - rel cannonical (use absolute paths, should be same as in sitemap)
+
+Tip page
+  - edit form - DONE
+  - delete form - DONE
+  - add comment form DONE
+  - add previous comments DONE
+
+Question
+  - edit question (/question/:id/edit) - DONE
+  - delete question (/question/:id/delete) - DONE
+  - ask question (/ask) DONE
+  - answer questions (/question/:id) DONE
+  - show answers to question (/question/:id) DONE
+  - display all questions (all / unanswered) (/qanda) DONE
+  - mark question as answered DONE
+  - Add "ask question" button to pages DONE
+  - Add menu DONE
+
+Front page
+  - display latest tips
+  - add category hierachy to each tip
+  - add comment count to each tip
+
+Category page
+  - display latest category tip
+  - add category hierachy to top of page
+  - add comment count to each tip
+DJlist: Add warning to use common sense (dismissable by cookie)
+Set message for unverified users
+Free up '/' path
+Restore roles of user upon login
+Create permissions for 'verified' users
+Backup database
+contact forms
+Add Google Analytics events to forms
+Make video
+Place forms in separate folder under views (DONE)
+User roles (admin user, auth user)
+Create content (tips and comments)
+User authentication
+Access permissons
+persistent sessions (with redis)
+logout
+site configuration
+token replacement
+send email
+request email verification page - when user calls this page, it sends them an email verification link
+one time login page (leads to user choosing a new password)
+password change
+User registration should check if the account already exists
+user profile
+account cancellation
+all forms should call the validation middleware
+clean urls
+XML Sitemap
+Content caching
+Chron jobs
+Google analytics integration
+Ability to define new content types in project extensions 
+  - create tables, update initialObjectList & resourcePermissionList
+  - ensure new content types have unique names
+  - create list of reserved content types
+  - create list of reserved database table column names
+Proper 403 page
+Proper 404 page
+ - add roles 'authenticated' and 'unauthenticated' so they can be managed by checkPermissions (not sure if I should do this)
+
+User
+  - change user routes to /user/x, /user/x/edit, /user/x/cancel DONE
+
+NOTES:
+Default Config object in bootstrap
+ - resourcePermissonList contains the list of resources and also the permissions that may be granted to access those resources.  Each time a new resource is created, this list needs to be updated
+ - rolesPermissionGrant contains the list of roles and the permissions granted to each role on each resource.  Anytime a new role is created, this list needs to be updated
+ 
+Closures in middleware validation - There is a very subtle issue when closures are used in the middleware validation 
+for routes.  Basically, the outer function gets run once (at start up) and any variables within the scope of the 
+outer function are set at that time and will not change as long as the server runs.  The only variables that can
+change are those modified by the inner function.  In the example below, once the server starts, the value of a is set
+and can never change.
+
+app.get('/route1', runEachTime(someVar), function(req, res){})
+function runEachTime(aVar){
+  var a = aVar
+  return function inner(req, res, next){
+    doSomethingWithA(a)
+  }
+}
+

@@ -1,0 +1,29 @@
+- var action = pageInfo.other.action
+- var category = pageInfo.other.categoryDefault || {id: null, name: '', parent: null}
+- var contentId = category.id
+- var destination = pageInfo.other.destination ? '?destination=' + pageInfo.other.destination : ''
+//- set form inputs to be disabled, if this is a delete form
+- var disabled = (action.toLowerCase() === 'delete') ? true : false;
+
+form(name='createContentCategory', id='createContentCategory', action='/content/category/' + contentId + '/' + action + destination, method='post', role='form')
+  include ../components/csrf.jade
+  //fieldset
+  legend 
+    p= action.substr(0,1).toUpperCase() + action.substr(1).toLowerCase() + ' category'
+  .form-group
+    .row
+      .col-xs-4
+        label(for='parentcategory') Parent category
+        select.form-control(name='parentcategory', id='parentcategory', disabled=disabled)
+          each cat in pageInfo.other.categoryOptions
+            option(value=cat.value, selected=cat.selected)
+              != cat.text
+  
+  .form-group
+    .row
+      .col-xs-4
+        .input-group
+          span.input-group-addon Category Name
+          input.form-control(type='text', name='newCategoryName', id='newCategoryName', placeholder='e.g. Finanicial', value=category.name || '',  required, disabled=disabled)
+          span.input-group-btn
+            button.btn.btn-primary(type='submit')= action.substr(0,1).toUpperCase() + action.substr(1).toLowerCase()

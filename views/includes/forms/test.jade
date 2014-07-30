@@ -1,0 +1,6 @@
+form.form-horizontal(name='testForm', action='/testpage', method='post', role='form')
+  include ../components/csrf.jade
+  
+  .form-group
+    .col-xs-offset-2.col-xs-4
+      button.btn(type='submit') Run Test

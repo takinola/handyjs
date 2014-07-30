@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h1= pageInfo.config.siteName
+  br
+  p Welcome to #{pageInfo.config.siteName}
+  br
+  p The site email is #{pageInfo.config.siteEmail}
+  br
+  p The current user is
+  br
+  - each val, index in pageInfo.user
+    p= index + ': ' + val
+
+

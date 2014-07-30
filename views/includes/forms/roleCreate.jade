@@ -1,0 +1,10 @@
+form(name='roleCreate', id='roleCreate', action='/rolecreate', method='post', role='form')
+  include ../components/csrf.jade
+  fieldset
+    legend Create new role
+    .input-group
+      span.input-group-addon Role Name
+      input.form-control(type='text', name='newRoleName', id='newRoleName', placeholder='e.g. guest', required)
+      span.input-group-btn
+        button.btn.btn-primary(type='submit') Create
+    

@@ -1,0 +1,217 @@
+mixin radiochoice(id_val, name_val, value_val)
+  if value_val == pageInfo.config.registerAuthority
+    input(type='radio', id=id_val, name=name_val, value=value_val, checked, required)
+  else
+    input(type='radio', id=id_val, name=name_val, value=value_val, required)
+    
+mixin checkboxchoice(id_val, name_val, check)
+  if check == true
+    input(type='checkbox', id=id_val, name=name_val, value='true', checked)
+  else
+    input(type='checkbox', id=id_val, name=name_val, value='true')
+
+form.form-horizontal(name='configAccount', id='configAccount', action='/configaccount', method='post', role='form')
+  include ../components/csrf.jade
+
+  .page-header
+    h4 Unidentified users
+      small &nbsp; Naming for unauthenticated and deleted users
+      
+    .well
+      .form-group
+        label.control-label.col-xs-2(for='anonUser') Anonymous users
+        .col-md-8
+          input.form-control(type='text', id='anonUser', name='anonUser', placeholder='Name of unauthenticated users', value='#{pageInfo.config.anonUser}', required)
+      
+      .form-group
+        label.control-label.col-xs-2(for='deletedUser') Deleted users
+        .col-md-8
+          input.form-control(type='text', id='deletedUser', name='deletedUser', placeholder='Name of deleted users ', value='#{pageInfo.config.deletedUser}', required)
+          
+  .page-header
+    h4 Account registration
+      
+    .well
+        label(for='registerAuthority') Who can register accounts?
+          .radio
+            label
+              +radiochoice('registerAuthority_1', 'registerAuthority', 'administrator')
+              p Administrator only
+          .radio
+            label
+              +radiochoice('registerAuthority_2', 'registerAuthority', 'visitor')
+              p Any visitor
+          .radio
+            label
+              +radiochoice('registerAuthority_3', 'registerAuthority', 'requireadmin')
+              p Any visitor, but administrator approval required
+            
+        
+        .spacer
+          label(for='emailVerify') Email verification
+            .checkbox
+              label
+                +checkboxchoice('emailVerify', 'emailVerify', pageInfo.config.emailVerify)
+                p Require email verification when visitors create accounts
+
+  .page-header
+    h4 Email templates
+    .well
+      .tabbable.tabs-left
+        ul.nav.nav-tabs
+          li.active 
+            a(href='#tab1', data-toggle='tab') Welcome (new user created by admin)
+          li 
+            a(href='#tab2', data-toggle='tab') Welcome (awaiting admin approval)
+          li 
+            a(href='#tab3', data-toggle='tab') Welcome (no approval required)
+          li 
+            a(href='#tab4', data-toggle='tab') Welcome (email verification required)
+          li 
+            a(href='#tab5', data-toggle='tab') Account activation
+          li 
+            a(href='#tab6', data-toggle='tab') Account blocked
+          li 
+            a(href='#tab7', data-toggle='tab') Account cancellation request
+          li 
+            a(href='#tab8', data-toggle='tab') Account cancelled
+          li 
+            a(href='#tab9', data-toggle='tab') Password recovery
+
+        .tab-content
+          #tab1.tab-pane.active
+            span.help-block Welcome message sent to new member accounts created by an administrator
+            br
+            .form-group
+              .col-md-8
+                label(for="welcome_new_user_admin_subject") Subject
+                input.form-control(type="text", name="welcome_new_user_admin_subject", id="welcome_new_user_admin_subject", value=pageInfo.config.welcome_new_user_admin_subject, required)
+                br
+                br
+                label(for="welcome_new_user_admin_body") Body
+                textarea.form-control(name="welcome_new_user_admin_body", id="welcome_new_user_admin_body", rows=15, required)
+                  =pageInfo.config.welcome_new_user_admin_body
+
+          #tab2.tab-pane
+            span.help-block Welcome message sent to new members upon registering, when administrator approval is required
+            br
+            .form-group
+              .col-md-8
+                label(for="welcome_new_user_approval_required_subject") Subject
+                input.form-control(type="text", name="welcome_new_user_approval_required_subject", id="welcome_new_user_approval_required_subject", value=pageInfo.config.welcome_new_user_approval_required_subject, required)
+                br
+                br
+                label(for="welcome_new_user_approval_required_body") Body
+                textarea.form-control(name="welcome_new_user_approval_required_body", id="welcome_new_user_approval_required_body", rows=15, required) 
+                  =pageInfo.config.welcome_new_user_approval_required_body
+            
+          #tab3.tab-pane
+            span.help-block Welcome message sent to new members upon registering, when no administrator approval is required (no email verification)
+            br
+            .form-group
+              .col-md-8
+                label.control-label(for="welcome_new_user_no_approval_required_subject") Subject
+                input.form-control(type="text", name="welcome_new_user_no_approval_required_subject", id="welcome_new_user_no_approval_required_subject", value=pageInfo.config.welcome_new_user_no_approval_required_subject, required)
+                br
+                br
+                label.control-label(for="welcome_new_user_no_approval_required_body") Body
+                textarea.form-control(name="welcome_new_user_no_approval_required_body", id="welcome_new_user_no_approval_required_body", rows=15, required)
+                  =pageInfo.config.welcome_new_user_no_approval_required_body
+
+          #tab4.tab-pane
+            span.help-block Welcome message sent to new members upon registering, when no administrator approval is required (email verification required)
+            br
+            .form-group
+              .col-md-8
+                label.control-label(for="welcome_new_user_email_verification_required_subject") Subject
+                input.form-control(type="text", name="welcome_new_user_email_verification_required_subject", id="welcome_new_user_email_verification_required_subject", value=pageInfo.config.welcome_new_user_email_verification_required_subject, required)
+                br
+                br
+                label.control-label(for="welcome_new_user_email_verification_required_body") Body
+                textarea.form-control(name="welcome_new_user_email_verification_required_body", id="welcome_new_user_email_verification_required_body", rows=15, required)
+                  =pageInfo.config.welcome_new_user_email_verification_required_body
+            
+          #tab5.tab-pane
+            span.help-block Welcome message sent to members when their account is activated
+            br
+            .form-group
+              .col-md-8
+                .checkbox
+                  label(for='account_activation_checkbox')
+                    +checkboxchoice('account_activation_checkbox', 'account_activation_checkbox', pageInfo.config.account_activation_checkbox)
+                    p Notify user when account is activated
+                br
+                label.control-label(for="account_activation_subject") Subject
+                input.form-control(type="text", name="account_activation_subject", id="account_activation_subject", value=pageInfo.config.account_activation_subject, required)
+                br
+                br
+                label.control-label(for="account_activation_body") Body
+                textarea.form-control(name="account_activation_body", id="account_activation_body", rows=15, required)
+                  =pageInfo.config.account_activation_body
+            
+          #tab6.tab-pane
+            span.help-block Message sent to members when their account is blocked
+            br
+            .form-group
+              .col-md-8
+                .checkbox
+                  label(for='account_blocked_checkbox')
+                    +checkboxchoice('account_blocked_checkbox', 'account_blocked_checkbox', pageInfo.config.account_blocked_checkbox)
+                    p Notify user when account is blocked
+                br
+                label.control-label(for="account_blocked_subject") Subject
+                input.form-control(type="text", name="account_blocked_subject", id="account_blocked_subject", value=pageInfo.config.account_blocked_subject, required)
+                br
+                br
+                label.control-label(for="account_blocked_body") Body
+                textarea.form-control(name="account_blocked_body", id="account_blocked_body", rows=15, required)
+                  =pageInfo.config.account_blocked_body
+            
+          #tab7.tab-pane
+            span.help-block Message sent to members when they request account cancellation
+            br
+            .form-group
+              .col-md-8
+                label.control-label(for="account_cancel_request_subject") Subject
+                input.form-control(type="text", name="account_cancel_request_subject", id="account_cancel_request_subject", value=pageInfo.config.account_cancel_request_subject, required)
+                br
+                br
+                label.control-label(for="account_cancel_request_body") Body
+                textarea.form-control(name="account_cancel_request_body", id="account_cancel_request_body", rows=15, required)
+                  =pageInfo.config.account_cancel_request_body
+            
+          #tab8.tab-pane
+            span.help-block Message sent to members when their account is cancelled
+            br
+            .form-group
+              .col-md-8
+                .checkbox
+                  label(for='account_cancelled_checkbox')
+                    +checkboxchoice('account_cancelled_checkbox', 'account_cancelled_checkbox', pageInfo.config.account_cancelled_checkbox)
+                    p Notify user when account is cancelled
+                br
+                label.control-label(for="account_cancelled_subject") Subject
+                input.form-control(type="text", name="account_cancelled_subject", id="account_cancelled_subject", value=pageInfo.config.account_cancelled_subject, required)
+                br
+                br
+                label.control-label(for="account_cancelled_body") Body
+                textarea.form-control(name="account_cancelled_body", id="account_cancelled_body", rows=15, required)
+                  =pageInfo.config.account_cancelled_body
+            
+          #tab9.tab-pane
+            span.help-block Message sent to members who request a new password
+            br
+            .form-group
+              .col-md-8
+                label.control-label(for="password_recovery_subject") Subject
+                input.form-control(type="text", name="password_recovery_subject", id="password_recovery_subject", value=pageInfo.config.password_recovery_subject, required)
+                br
+                br
+                label.control-label(for="password_recovery_body") Body
+                textarea.form-control(name="password_recovery_body", id="password_recovery_body", rows=15, required)
+                  =pageInfo.config.password_recovery_body
+            
+
+  .form-group
+    .col-md-offset-2.col-md-8
+      button.btn.btn-primary(type='submit') Save configuration 

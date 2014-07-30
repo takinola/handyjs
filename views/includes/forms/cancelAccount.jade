@@ -1,0 +1,40 @@
+mixin userinfodisplay(userdetails)
+  table.table.table-striped.table-bordered.table-hover.table-condensed
+    caption
+      p 
+        strong
+          | Account details
+    thead
+      tr
+        th
+          p id
+        th
+          p Username
+        th
+          p Email
+        th
+          p Account created
+    tbody
+      each val in pageInfo.other.cancelUser
+        tr
+          td
+            p=val.id
+          td
+            p=val.name
+          td
+            p=val.email
+          td
+            p=val.createdate
+
+form.form-horizontal(name='cancelAccount', action='/cancelaccount/' + pageInfo.other.cancelUser[0].id, method='post', role='form')
+  include ../components/csrf.jade
+  
+  .form-group
+    .col-md-12
+      +userinfodisplay(pageInfo.other.cancelUser)
+  
+  .form-group
+    .col-md-12
+      button.btn.btn-large.btn-danger(type='submit') Cancel this account
+      &nbsp;&nbsp;
+      a.btn.btn-large.btn-primary(href='/user/' + pageInfo.other.cancelUser[0].id) Keep this account

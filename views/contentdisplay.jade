@@ -1,0 +1,26 @@
+extends layout
+
+block content
+  .container-fluid.spacer.fill-screen-height
+    .row
+      .col-md-offset-1
+        - var type = pageInfo.other.contentType.toLowerCase()
+  
+        case type
+          when 'story'
+            include includes/forms/contentStory
+          when 'comment'
+            include includes/forms/contentComment
+          when 'category'
+            include includes/forms/contentCategory
+          default
+            .btn-group
+              button.btn.btn-primary Create new content
+              button.btn.btn-primary.dropdown-toggle(data-toggle='dropdown')
+                span.caret
+              ul.dropdown-menu
+                each val in pageInfo.other.contentTypeList
+                  - valLC = val.toLowerCase()
+                  li
+                    a(href='/content/create/#{valLC}') #{val}
+

@@ -1,0 +1,77 @@
+extends layout
+
+block content
+  .container-fluid
+    .well.page-header
+      h1 Configuration Options
+        br
+        small
+          | Please update site configuration
+    .row
+      .col-md-12
+        ul.nav.nav-tabs
+          li.active
+            a(href='\#general', data-toggle='tab') General Settings
+          li
+            a(href='\#account', data-toggle='tab') Account Settings
+          li
+            a(href='\#manageuser', data-toggle='tab') Manage Users
+          li
+            a(href='\#managecontent', data-toggle='tab') Content Settings
+
+        .tab-content
+          #general.tab-pane.active
+            .row
+              .col-md-offset-1.col-md-10
+                include includes/forms/configGeneral
+          
+          #account.tab-pane
+            .row
+              .col-md-offset-1.col-md-10
+                include includes/forms/configAccount
+          
+          #manageuser.tab-pane
+            .row
+              .col-md-offset-1.col-md-10
+                .page-header
+                  h4 Manage roles
+              
+                .well
+                  .row
+                    .col-md-offset-1.col-md-5
+                      include includes/forms/roleCreate
+                    .col-md-offset-1.col-md-5 
+                      include includes/forms/roleDelete 
+            
+            .row
+              .col-md-offset-1.col-md-10
+                .page-header
+                  h4 Reset access control system
+                  .well
+                    include includes/forms/aclReset
+
+            .row
+              .col-md-offset-1.col-md-10            
+                .page-header
+                  h4 Register new user
+                    small &nbsp; Random password is generated, if password is ommitted
+                  .well
+                    include includes/forms/userRegister
+            
+            .row
+              .col-md-offset-1.col-md-10    
+                .page-header
+                  h4 Approve pending user registrations
+                    small &nbsp; Users will be notified automatically once their registration is approved
+                  .well
+                    include includes/forms/userRegisterApproval
+          
+          #managecontent.tab-pane
+            .row
+              .col-md-offset-1.col-md-10
+                .page-header
+                  h4 Sitemap settings
+              
+                  .well
+                    .row
+                      include includes/forms/sitemapSettings

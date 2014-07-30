@@ -1,0 +1,37 @@
+.container-fluid
+  each arr, type in sysmessage
+    case type
+      when 'success'
+        .alert.alert-dismissable.fade.in.alert-success
+          button.close(type='button', data-dismiss='alert') &times;
+          h4 Cool!
+          each msg in arr
+            p!= msg
+          
+      when 'warning'
+        .alert.alert-dismissable.fade.in.alert-warning
+          button.close(type='button', data-dismiss='alert') &times;
+          h4 Caution!
+          each msg in arr
+            p!= msg
+
+      when 'danger'
+        .alert.alert-dismissable.fade.in.alert-danger
+          button.close(type='button', data-dismiss='alert') &times;
+          h4 Oops!
+          each msg in arr
+            p!= msg
+
+      when 'dev'
+        .alert.alert-dismissable.fade.in.alert-info
+          button.close(type='button', data-dismiss='alert') &times;
+          h4 System message
+          each msg in arr
+            p!= msg
+
+      default
+        .alert.alert-dismissable.fade.in(class="alert-#{type}")
+          button.close(type='button', data-dismiss='alert') &times;
+          h4= type
+          each msg in arr
+            p!= msg

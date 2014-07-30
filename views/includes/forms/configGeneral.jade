@@ -1,0 +1,205 @@
+- var sitePath = pageInfo.siteinfo.protocol + '://' + pageInfo.siteinfo.host + '/';
+
+mixin selectdefault(val, label, freq)
+  if val == freq
+    option(value=val, selected) #{label}
+  else
+    option(value=val) #{label}
+
+form.form-horizontal(name='configGeneral', id='configGeneral', action='/configgeneral', method='post', role='form')
+  include ../components/csrf.jade
+
+  .page-header
+    h4 Site information
+      small &nbsp; Basic site identification details
+    .well
+      .form-group
+        label.control-label.col-md-2(for='siteName') Site name
+        .col-md-8
+          input.form-control(type='text', id='siteName', name='siteName', placeholder='Public name of your website', value='#{pageInfo.config.siteName}', required)
+          
+      .form-group
+        label.control-label.col-md-2(for='siteEmail') Site email
+        .col-md-8
+          input.form-control(type='email', id='siteEmail', name='siteEmail', placeholder='e.g. admin@sitename.com', value='#{pageInfo.config.siteEmail}', required)
+          span.help-block Automated emails, such as registration information, will be sent from this address.  It is usually a good idea to use an address ending in your site's domain to prevent your emails from being flagged as spam.
+
+  .page-header
+    h4 Path settings
+      small &nbsp; Destinations for frontpage, 404 pages, etc
+    .well
+      .form-group
+        label.control-label.col-md-2(for='defaultFrontPage') Default front page
+        .col-md-8
+          input.form-control(type='text', id='defaultFrontPage', name='defaultFrontPage', placeholder='/path/to/frontpage', value='#{pageInfo.config.defaultFrontPage}')
+          span.help-block Leave blank to use the default front page
+
+      .form-group
+        label.control-label.col-md-2(for='welcomePage') Login destination
+        .col-md-8
+          input.form-control(type='text', id='welcomePage', name='welcomePage', placeholder='/path/to/welcomepage', value='#{pageInfo.config.welcomePage}')
+          span.help-block Leave blank to use the default login welcome page
+
+      .form-group
+        label.control-label.col-md-2(for='default404Page') Default 404 page
+        .col-md-8
+          input.form-control(type='text', id='default404Page', name='default404Page', placeholder='/path/to/404page', value='#{pageInfo.config.default404Page}')
+          span.help-block Leave blank to use the default 404 page (content not found)
+          
+      .form-group
+        label.control-label.col-md-2(for='default403Page') Default 403 page
+        .col-md-8
+          input.form-control(type='text', id='default403Page', name='default403Page', placeholder='/path/to/403page', value='#{pageInfo.config.default403Page}')
+          span.help-block Leave blank to use the default 403 page (access to content denied)
+
+  .page-header
+    h4 Site email
+      small &nbsp; Email settings
+      
+    .panel-group#emailAccordion
+      - var checked, collapsed
+      .panel.panel-default
+        .panel-heading
+          .radio
+            label
+              - checked = (pageInfo.config.emailAgent === 'mandrill')
+              - collapsed = checked
+              input(type='radio', name='emailAgent', id='emailAgent_mandrill', value='mandrill', checked=checked)
+              | Use Mandrill
+        #collapse_mandrill.panel-collapse.collapse(class= collapsed ? 'in' : '')
+          .panel-body
+            .form-group
+              label.control-label.col-md-2(for='mandrillApiKey') Mandrill API Key
+              .col-md-8
+                input.form-control(type='text', id='mandrillApiKey', name='mandrillApiKey', placeholder='unique Mandrill API key', value= pageInfo.config.mandrillApiKey)
+                span.help-block This API key is provided by the Mandrill service.  Please visit mandrillapp.com to request an API, if needed.
+
+      .panel.panel-default
+        .panel-heading
+          .radio
+            label
+              - checked = (pageInfo.config.emailAgent === 'mail_server')
+              - collapsed = checked
+              input(type='radio', name='emailAgent', id='emailAgent_mail_server', value='mail_server', checked=checked)
+              | Use a mail server
+        #collapse_mail_server.panel-collapse.collapse(class= collapsed ? 'in' : '')
+          .panel-body
+            .well
+              .form-group
+                label.control-label.col-md-2(for='siteEmailPassword') Password for email server
+                .col-md-8
+                  input.form-control(type='password', id='siteEmailPassword', name='siteEmailPassword', placeholder='password to email server', value='#{pageInfo.config.siteEmailPassword}')
+                  span.help-block Password used to login to the email server
+          
+              .form-group
+                label.control-label.col-md-2(for='siteEmailHost') Email server host address
+                .col-md-8
+                  input.form-control(type='text', id='siteEmailHost', name='siteEmailHost', placeholder='e.g. smtp.gmail.com', value='#{pageInfo.config.siteEmailHost}')
+                  span.help-block Address of email server
+          
+              .form-group
+                label.control-label.col-md-2(for='siteEmailPort') Email server port
+                .col-md-8
+                  input.form-control(type='text', id='siteEmailPort', name='siteEmailPort', placeholder='port to connect to email server', value='#{pageInfo.config.siteEmailPort}')
+                  span.help-block If left blank, a standard port number will be used
+          
+              .form-group
+                label.control-label.col-md-2(for='siteEmailSSL') Use SSL?
+                .col-md-2
+                  select.form-control(name='siteEmailSSL', id='siteEmailSSL')
+                    //- for some reason, the mixin does not work if you pass true or false values so
+                    //- it was necessary to set siteEmailSSL to values of 1 or 0 and then convert
+                    //- to true or false when the form is submitted
+                    - var flag = pageInfo.config.siteEmailSSL === true ? 1 : 0;
+                    +selectdefault(1, 'Yes', flag)
+                    +selectdefault(0, 'No', flag)
+            
+              .form-group   
+                label.control-label.col-md-2(for='siteEmailTLS') Use TLS?
+                .col-md-2
+                  select.form-control(name='siteEmailTLS', id='siteEmailTLS')
+                    //- for some reason, the mixin does not work if you pass true or false values, so
+                    //- it was necessary to set siteEmailTLS to values of 1 or 0 and then convert
+                    //- to true or false when the form is submitted
+                    - var flag = pageInfo.config.siteEmailTLS === true ? 1 : 0;
+                    +selectdefault(1, 'Yes', flag)
+                    +selectdefault(0, 'No', flag)
+
+              .form-group
+                label.control-label.col-md-2(for='siteEmailTimeout') Email Response Timeout
+                .col-md-8
+                  input.form-control(type='number', id='siteEmailTimeout', name='siteEmailTimeout', placeholder='timeout in milliseconds', value='#{pageInfo.config.siteEmailTimeout}')
+                  span.help-block Maximum time to wait for smtp responses. If left blank, defaults to 5000
+
+  .page-header
+    h4 Analytics
+      small &nbsp; Site analytics settings
+    .well
+      .form-group
+        label.control-label.col-md-2(for='googleAnalyticsId') Google analytics web property ID
+        .col-md-8
+          input.form-control(type='text', id='googleAnalyticsId', name='googleAnalyticsId', placeholder='unique Google Analytics ID', value='#{pageInfo.config.googleAnalyticsId}')
+          span.help-block This ID is unique to each site you want to track separately, and is in the form of UA-xxxxxxx-yy. To get a Web Property ID, register your site with Google Analytics, or if you already have registered your site, go to your Google Analytics Settings page to see the ID next to every site profile.
+
+  .page-header
+    h4 Cron
+      small &nbsp; Cron schedules tasks that are performed periodically
+    .well
+      .form-group
+        label.control-label.col-md-2(for='cronPath') Path to run cron
+        .col-md-8
+          .input-group
+            span.input-group-addon #{sitePath}
+            input.form-control(type='text', id='cronPath', name='cronPath', value='cron/' + pageInfo.other.cronPath, disabled)
+          
+      .form-group
+        .col-md-offset-2.col-md-8
+          a.btn.btn-warning(href='/cron/' + pageInfo.other.cronPath) Run cron now
+
+  .page-header
+    h4 Backup
+      small &nbsp; Database backup settings
+    .well
+      .form-group
+        label.control-label.col-md-2(for='backupFreq') Backup frequency
+        .col-md-3
+          select.form-control(name='backupFreq', id='backupFreq')
+            +selectdefault(0, 'Never', pageInfo.config.backupFreq)
+            +selectdefault(1, 'One hour', pageInfo.config.backupFreq)
+            +selectdefault(3, 'Three hours', pageInfo.config.backupFreq)
+            +selectdefault(6, 'Six hours', pageInfo.config.backupFreq)
+            +selectdefault(12, 'Twelve hours', pageInfo.config.backupFreq)
+            +selectdefault(24, 'One day', pageInfo.config.backupFreq)
+            +selectdefault(168, 'One week', pageInfo.config.backupFreq)
+      
+      .form-group
+        label.control-label.col-md-2(for='backupDestinationType') Backup destination type
+        .col-md-3
+          select.form-control(name='backupDestinationType', id='backupDestinationType')
+            +selectdefault('email', 'Email address', pageInfo.config.backupDestinationType)
+            +selectdefault('file', 'Local file path', pageInfo.config.backupDestinationType)
+          span.help-block What type of destination will be used for storing the backups
+      
+      .form-group
+        label.control-label.col-md-2(for='backupDestination') Backup destination
+        .col-md-8
+          input.form-control(type='text', id='backupDestination', name='backupDestination', placeholder='path or email address', value='#{pageInfo.config.backupDestination}')
+          span.help-block The path to the file or email address where the backup files will be delivered.
+
+  .form-group
+    .col-md-offset-2.col-md-8
+      button.btn.btn-primary(type='submit') Save configuration
+      
+  //- scripts
+  script.
+    window.onload = function(){
+      document.getElementById('emailAgent_mandrill').onclick = function(){
+        $('#collapse_mandrill').collapse('show');
+        $('#collapse_mail_server').collapse('hide');
+      };
+      
+      document.getElementById('emailAgent_mail_server').onclick = function(){
+        $('#collapse_mandrill').collapse('hide');
+        $('#collapse_mail_server').collapse('show');
+      };
+    }

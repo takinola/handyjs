@@ -1,0 +1,5 @@
+form.form-inline(name='aclReset', id='aclReset', method='post', action='/aclreset', role='form')
+  include ../components/csrf.jade
+  fieldset
+    span.help-block CAUTION: Reseting the access control system may take a long time to complete.  There is no need to perform this function unless the Redis database is corrupted.
+    button.btn.btn-danger(type='submit') Reset access control system

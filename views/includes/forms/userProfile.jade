@@ -1,0 +1,66 @@
+mixin disabledcheckboxchoice(id_val, name_val, check)
+  if check == true
+    input(type='checkbox', id=id_val, name=name_val, disabled, checked)
+  else
+    input(type='checkbox', id=id_val, name=name_val, disabled)
+    
+form.form-horizontal(name='userProfile', id='userProfile', action='/userprofile', method='post', role='form')
+  include ../components/csrf.jade
+
+  .page-header
+    h4 User details
+      small &nbsp; Basic account information
+      
+    .well
+      .form-group
+        label.control-label.col-xs-2(for='userName') User name
+        .col-xs-4
+          input.form-control(type='text', id='userName', name='userName', placeholder='', value='#{pageInfo.user.name}', required)
+      .form-group
+        label.control-label.col-xs-2(for='userEmail') User email address
+        .col-xs-4
+          input.form-control(type='email', id='userEmail', name='userEmail', placeholder='e.g. name@gmail.com', value='#{pageInfo.user.email}', required)
+  
+  .page-header
+    h4 Other information
+    
+    .well
+      input.form-control(type='hidden', id='userId_hidden', name='userId_hidden', value='#{pageInfo.user.id}')
+      .form-group
+        label.control-label.col-xs-2(for='userId') User Id
+        .col-xs-4
+          input.form-control(type='number', id='userId', name='userId', value='#{pageInfo.user.id}', disabled)
+      .form-group
+        label.control-label.col-xs-2(for='lastLogin') Last login
+        .col-xs-4
+          - var lastLogin = new Date(pageInfo.user.lastlogin).toString();
+          input.form-control(type='datetime', id='lastLogin', name='lastLogin', value='#{lastLogin}', disabled)
+      .form-group
+        label.control-label.col-xs-2(for='accountCreated') Account created
+        .col-xs-4
+          - var createDate = new Date(pageInfo.user.createdate).toString();
+          input.form-control(type='datetime', id='accountCreated', name='accountCreated', value='#{createDate}', disabled)
+      
+      .form-group 
+        label.control-label.col-xs-2(for='accountActive') Account deleted?
+        .col-xs-8
+          .checkbox
+            label
+              +disabledcheckboxchoice('accountActive', 'accountActive', pageInfo.user.deleted)
+              | If checked, the account has been deleted
+
+      .form-group
+        label.control-label.col-xs-2(for='emailVerified') Email verified?
+        .col-xs-8
+          .checkbox
+            label
+              +disabledcheckboxchoice('emailVerified', 'emailVerified', pageInfo.user.verified)
+              | If checked, the email address used to register the account was verified
+          
+  .form-group
+    .col-xs-offset-2.col-xs-8
+      button.btn.btn-primary(type='submit') Update profile
+      | &nbsp; 
+      a.btn.btn-primary(href='/user/' + pageInfo.user.id +'/password/change', type='button') Change your password
+      | &nbsp; 
+      a.btn.btn-danger(href='/user/' + pageInfo.user.id + '/account/cancel') Cancel this account

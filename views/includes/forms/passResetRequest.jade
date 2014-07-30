@@ -1,0 +1,9 @@
+form.form-horizontal(name='passResetRequest', id='passResetRequest', action='/passresetrequest', method='post', role='form')
+  include ../components/csrf
+  .form-group
+    label.control-label.col-md-1(for='userEmail') Email
+    .col-md-4
+      input.form-control(type='email', id='passResetRequest_userEmail', name='userEmail', placeholder='e.g. name@gmail.com', required)
+  .form-group
+    .col-md-offset-1.col-md-4
+      button.btn.btn-primary(type='submit') Reset my password 

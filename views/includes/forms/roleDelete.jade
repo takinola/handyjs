@@ -1,0 +1,12 @@
+mixin rolelist(role)
+  option #{role}
+
+form.form-inline(name='roleDelete', id='roleDelete', action='/roledelete', method='post', role='form')
+  include ../components/csrf.jade
+  fieldset
+    legend Delete existing role
+    select.form-control(name='deleteRole', id='deleteRole')
+      each role in pageInfo.other.existingRoleList
+        +rolelist(role)
+    | &nbsp;
+    button.btn.btn-primary(type='submit') Delete

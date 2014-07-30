@@ -1,0 +1,51 @@
+extends layout
+
+block content
+  .container-fluid.fill-screen-height
+    .row
+      .col-md-offset-2.col-md-10
+        h1 Please Login
+
+        .tabbable
+          ul.nav.nav-tabs#accesstab
+            li.active
+              a(href='#login', data-toggle='tab') Login
+            li
+              a(href='#passreset', data-toggle='tab') Reset your password
+            li
+              a(href='#register', data-toggle='tab') Register
+          .tab-content
+            #login.tab-pane.active
+              .spacer
+                include includes/forms/userLogin
+            #passreset.tab-pane
+              .spacer
+                include includes/forms/passResetRequest
+            #register.tab-pane
+              .spacer
+                include includes/forms/userRegister
+
+  script.
+    //- choose tab
+    //- enclose in window.onload so script always run after main page scripts
+    window.onload = function(){
+      var queryParams = {};
+      var temp = {}; // temporary variable to hold query
+      var tabId = window.location.search.slice(1).split('&');  // get query string and remove initial '&'
+      //- update queryParams with the query string values
+      tabId.forEach(function(item){
+        temp = item.split('=');
+        queryParams[temp[0]] = temp[1];
+      });
+
+      if(queryParams.tab === 'register'){
+        $('#accesstab a[href="#register"]').tab('show');
+      }
+
+      if(queryParams.tab === 'reset'){
+        $('#accesstab a[href="#passreset"]').tab('show');
+      }
+    }
+
+
+

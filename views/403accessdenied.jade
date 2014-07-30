@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  .container-fluid.fill-screen-height
+    .row
+      .col-md-offset-2.col-md-10
+        h1 Access denied! &nbsp
+          small
+            | Error status code 403
+        p You do not appear to have the permission to access this resource.
+        if pageInfo.user.id === 0
+            p Perhaps, <a href='/login'>logging into your account</a> or (<a href='/login?tab=register'>registering for an account</a>, if you don't have one) will help.
+        p Please <a href='/contact'>contact</a> the site administrator if you believe this message is in error.

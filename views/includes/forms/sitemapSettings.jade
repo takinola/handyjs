@@ -1,0 +1,48 @@
+mixin freqAndPriority(setting, contentType)
+  - var freqOptions = ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never']
+  - var priorityOptions = ['1.0', '0.9', '0.8', '0.7', '0.6', '0.5', '0.4', '0.3', '0.2', '0.1']
+  - var defFreq = pageInfo.other.sitemapSettings.default.freq
+  - var defPriority = pageInfo.other.sitemapSettings.default.priority
+  if setting.freq
+    - var freq = setting.freq
+  else 
+    - var freq = defFreq
+  
+  if setting.priority
+    - var priority = setting.priority
+  else
+    - var priority = defPriority
+  
+  td 
+    select.form-control(id=contentType+'_freq', name=contentType+'_freq')
+      each val in freqOptions
+        - var selected = (val === freq)
+        option(value=val, selected=selected) #{val}
+  td
+    select.form-control(id=contentType+'_priority', name=contentType+'_priority')
+      each val in priorityOptions
+        - var selected = (val === priority)
+        option(value=val, selected=selected) #{val}
+    
+.col-md-offset-1.col-md-8
+  form(name='sitemapSetting', id='sitemapSetting', action='/sitemapsetting', method='post', role='form')
+    include ../components/csrf.jade
+    .form-group
+      table.table.table-condensed
+        thead
+          tr
+            th
+            th Frequency
+            th Priority
+        tbody
+          each setting, contentType in pageInfo.other.sitemapSettings.content
+            tr  
+              td #{contentType}
+              +freqAndPriority(setting, contentType)
+      
+          tr
+            td Default settings
+            +freqAndPriority({}, 'default')
+    | &nbsp&nbsp;
+    .form-group
+      button.btn.btn-primary(type='submit') Save sitemap settings
