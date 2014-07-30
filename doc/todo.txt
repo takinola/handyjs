@@ -2,7 +2,7 @@ CODEPOINT
 
 TO-DO
 Other
-  - Rename Git remote repository to Myeloma Resources
+  - Rename Git remote repository to Myeloma Resources DONE
   - Create separate repository for Handy.js
   - Rewrite init script to pull Myeloma Resources and Handy.js separately
   - Set up Linode so you can push updates to production using Git
