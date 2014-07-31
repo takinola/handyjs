@@ -1,6 +1,9 @@
 CODEPOINT
 
 TO-DO
+Update menu.sh to perform deployments to remote repo
+  - allow separate commit messages for handyjs and mresources
+  
 Deployment
   - Setup domain
   - Setup Nginx to point to beta and production sites
