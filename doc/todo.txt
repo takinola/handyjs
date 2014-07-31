@@ -1,11 +1,12 @@
 CODEPOINT
 
 TO-DO
-Other
-  - Rename Git remote repository to Myeloma Resources DONE
-  - Create separate repository for Handy.js DONE
-  - Rewrite init script to pull Myeloma Resources and Handy.js separately DONE
-  - Set up Linode so you can push updates to production using Git DONE
+Deployment
+  - Setup domain
+  - Setup Nginx to point to beta and production sites
+  - Setup sysmtemd service to start Node
+  - Create databases
+  - Modify Git post-receive for beta and production sites to restart services after each update
   
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
