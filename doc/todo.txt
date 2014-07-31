@@ -5,7 +5,7 @@ Other
   - Rename Git remote repository to Myeloma Resources DONE
   - Create separate repository for Handy.js DONE
   - Rewrite init script to pull Myeloma Resources and Handy.js separately DONE
-  - Set up Linode so you can push updates to production using Git
+  - Set up Linode so you can push updates to production using Git DONE
   
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
