@@ -1,9 +1,11 @@
 CODEPOINT
 
 TO-DO
-Update menu.sh to perform deployments to remote repo
-  - allow separate commit messages for handyjs and mresources
-  
+Update menu.sh
+  - Perform deployments to origin repo
+    - allow separate commit messages for handyjs and mresources
+  - upgrade Linode server
+
 Deployment
   - Setup domain
   - Setup Nginx to point to beta and production sites
@@ -30,6 +32,7 @@ Permissions system
  - write forms to assign or unassign roles to users
 
 General
+  - change permalink structure to <content_type>/path <==> content/id (as opposed to <content_type>/id)
   - '/administration' - provide links to all admin activity (configuration, permissions, etc)
   - replace all double array comparison searches with _.findWhere or _.where
 
