@@ -4,7 +4,6 @@ TO-DO
 Update menu.sh
   - Perform deployments to origin repo
     - allow separate commit messages for handyjs and mresources
-  - upgrade Linode server
 
 Deployment
   - Setup domain
