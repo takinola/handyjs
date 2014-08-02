@@ -4,9 +4,9 @@ TO-DO
 
 Deployment
   - Setup domain DONE
-  - Setup Nginx to point to beta and production sites
-  - Setup sysmtemd service to start Node
-  - Create databases
+  - Setup Nginx to point to beta and production sites DONE
+  - Setup sysmtemd service to start Node DONE
+  - Create databases DONE
   - Modify Git post-receive for beta and production sites to restart services after each update
   
 Tests
