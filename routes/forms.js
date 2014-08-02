@@ -20,7 +20,9 @@ module.exports = function(app){
 
   // siteInstall form - Tested
   siteinstall.post('/', handy.user.requireAuthenticationStatus('unauthenticated'), handy.system.validateForm('siteInstall'), function(req, res){
+    console.log('starting siteinstall...');
     handy.bootstrap.runInstallation(req, res, function(err){
+      console.log('runInstallation complete: ', err);
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'something went wrong with the installation!\n' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
