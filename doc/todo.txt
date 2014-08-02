@@ -1,12 +1,9 @@
 CODEPOINT
 
 TO-DO
-Update menu.sh
-  - Perform deployments to origin repo
-    - allow separate commit messages for handyjs and mresources
 
 Deployment
-  - Setup domain
+  - Setup domain DONE
   - Setup Nginx to point to beta and production sites
   - Setup sysmtemd service to start Node
   - Create databases
@@ -14,7 +11,6 @@ Deployment
   
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
-
 
 Cache
   - Cache category display (if needed)
@@ -145,4 +141,3 @@ function runEachTime(aVar){
     doSomethingWithA(a)
   }
 }
-
