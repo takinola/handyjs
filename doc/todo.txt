@@ -7,7 +7,7 @@ Deployment
   - Setup Nginx to point to beta and production sites DONE
   - Setup sysmtemd service to start Node DONE
   - Create databases DONE
-  - Modify Git post-receive for beta and production sites to restart services after each update
+  - Modify Git post-receive for beta and production sites to restart services after each update DONE
   
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
