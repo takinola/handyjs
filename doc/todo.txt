@@ -3,7 +3,8 @@ CODEPOINT
 TO-DO
 
 Deployment
-  
+  - start service for myelomalist.com
+
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
 
