@@ -31,12 +31,16 @@ module.exports = function(app){
       info: {title: 'Test scenarios'},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
-      
-      handy.system.backupDatabase(req, res, function(key, errObj){
-        console.log('backup complete: err:', err);
+      if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
+
+      handy.system.logger.record('info', {req:req,  category: 'test', message: 'wow!'});
+      var x = new Error('threw error');
+      handy.system.logger.record('error', {error: x, message: 'another error??'});
+      handy.system.logger.report(req, res, 'hourly', function(nullValue, result){
+        console.log(handy.utility.inspect(result));
         res.render('testpage', {pageInfo: pageInfo});
       });
+      
     });
   });
   
@@ -46,7 +50,7 @@ module.exports = function(app){
       info: {title: 'Test scenarios'},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err}); return;}
       
       url.resolve('/testpageunauth', '/crazypage.html');
       //console.log('current url is ' + global.location.href);
@@ -69,6 +73,7 @@ module.exports = function(app){
     if(!handy.system.systemVariable.get('installation_flag')){
       res.render('install', {pageInfo: pageInfo});
     } else {
+      handy.system.logger.record('info', {req: req, category: 'system', message: 'installation complete'});
       res.redirect('/');
       return;
     }
@@ -82,10 +87,11 @@ module.exports = function(app){
       info: {title: 'Welcome | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'welcomepage - error in prepGetRequest'}); return;}
       var welcomepage = handy.system.systemVariable.getConfig('welcomePage');
       if(welcomepage === '' || welcomepage === null || welcomepage === '/welcomepage'){
         res.render('index', {pageInfo: pageInfo});
+        handy.system.logger.record('info', {req: req, category: 'system', message: 'welcome page'});
         return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
@@ -105,7 +111,7 @@ module.exports = function(app){
       info: {title: 'Site configuration | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'configuration - error in prepGetRequest'}); return;}
       
       var asyncFn = {
         accountpendingregistration: _getAccountsPendingRegistration,
@@ -117,12 +123,14 @@ module.exports = function(app){
         if(err){
           handy.system.systemMessage.set(req, 'danger', 'Something went wrong: ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to current page
+          handy.system.logger.record('error', {error: err, message: 'configuration - error displaying configuration'});
           return;
         }
       
         pageInfo.other = results;
         pageInfo.other.cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
         res.render('configuration', {pageInfo: pageInfo});
+        handy.system.logger.record('info', {req: req, category: 'system', message: 'display configuration page'});
         return;
       });
     
@@ -181,13 +189,15 @@ module.exports = function(app){
       info: {title: 'Update role permissions | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'permissions - error in prepGetRequest'}); return;}
 
       // get the resource and permissions lists
       pageInfo.other.resourcePermissionList = handy.system.systemVariable.getConfig('resourcePermissionList');
       pageInfo.other.rolesPermissionGrant = handy.system.systemVariable.getConfig('rolesPermissionGrant');
     
       res.render('permissions', {pageInfo: pageInfo});
+      handy.system.logger.record('info', {req: req, category: 'system', message: 'display permissions page'});
+      return;
     });
   });
   app.use('/configuration', configurationR);
@@ -198,19 +208,20 @@ module.exports = function(app){
       info: {title: 'Access denied | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'access denied page - error in prepGetRequest'}); return;}
       
       res.statusCode = 403;
       var accessdeniedpage = handy.system.systemVariable.getConfig('default403Page');
       if(accessdeniedpage === '' || accessdeniedpage === null || accessdeniedpage === '/accessdenied'){
-        console.log('regular 403');
         res.render('403accessdenied', {pageInfo: pageInfo}); 
+        handy.system.logger.record('warn', {req: req, category: 'system', message: '403 access denied'});
+        return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
         // because prepGetRequest moves the messages to the res object, which then gets wiped out after a redirect
         handy.system.restoreSystemMessage(req, res);
-        console.log('other 403');
         res.redirect(res.statusCode, accessdeniedpage);
+        handy.system.logger.record('warn', {req: req, category: 'system', message: '403 access denied'});
         return;
       }
     });
@@ -222,17 +233,20 @@ module.exports = function(app){
       info: {title: 'Page not found (404) | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'not found page - error in prepGetRequest'}); return;}
       
       res.statusCode = 404;
       var notfoundpage = handy.system.systemVariable.getConfig('default404Page');
       if(notfoundpage === '' || notfoundpage === null || notfoundpage === '/notfound'){
         res.render('404notfound', {pageInfo: pageInfo}); 
+        handy.system.logger.record('warn', {req: req, category: 'system', message: '404 not found'});
+        return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
         // because prepGetRequest moves the messages to the res object, which then gets wiped out after a redirect
         handy.system.restoreSystemMessage(req, res); 
         res.redirect(res.statusCode, notfoundpage);
+        handy.system.logger.record('warn', {req: req, category: 'system', message: '404 not found'});
         return;
       }
     });
@@ -242,8 +256,6 @@ module.exports = function(app){
   app.get('/cron/:path', function(req, res){
     var path = encodeURIComponent(req.params.path);  //  undo decodeURIComponent automatically applied by req.params
     var cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
-    //console.log('    path: ' + path + ' type: ' + typeof path);
-    //console.log('cronPath: ' + cronPath + ' type: ' + typeof cronPath);
     if(path !== cronPath){return res.redirect('/');}  // wrong path parameter, don't run cron
     
     //console.log('right cron path.  running cron tasks now...');
@@ -251,10 +263,11 @@ module.exports = function(app){
     handy.system.runCron(req, res, function(err){
       if(err){
         handy.system.systemMessage.set(req, 'danger', err.message);
+        handy.system.logger.record('error', {error: err, message: 'cron ended with errors'});
       } else {
         handy.system.systemMessage.set(req, 'success', 'cron ran successfully');
+        handy.system.logger.record('info', {req: req, category: 'cron', message: 'cron run successfully'});
       }
-      //console.log('cronTask:\n', handy.system.systemVariable.get('cronTask'), '\ncronRecord:\n', handy.system.systemVariable.getConfig('cronRecord'));
       return res.redirect('/');
     });
   });
@@ -298,6 +311,7 @@ module.exports = function(app){
 
     res.header('Content-Type', 'text/xml');
     res.send(xml);
+    handy.system.logger.record('info', {req: req, category: 'sitemap', message: 'sitemap submitted successfully'});
   });
   
   // contact form
@@ -306,9 +320,10 @@ module.exports = function(app){
       info: {title: 'Contact form | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'contact page - error in prepGetRequest'}); return;}
       
       res.render('contactform', {pageInfo: pageInfo});
+      handy.system.logger.record('info', {req: req, category: 'system', message: 'contact page'});
     });
   });
   
@@ -325,7 +340,7 @@ module.exports = function(app){
       info: {title: 'Login | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'login page - error in prepGetRequest'}); return;}
       
       // set post login/registration destination
       if(req.query.destination){
@@ -333,6 +348,7 @@ module.exports = function(app){
       }
 
      res.render('login', {pageInfo: pageInfo});
+     handy.system.logger.record('info', {req: req, category: 'system', message: 'login page'});
     });
   });
   
@@ -353,6 +369,7 @@ module.exports = function(app){
     logoutuser.logout(req, function(){
       logoutuser = null;  // free up some memory
       res.redirect('/');
+      handy.system.logger.record('info', {req: req, category: 'user', message: 'user logout'});
       return;
     });
   });
@@ -366,7 +383,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'user profile page - error in prepGetRequest'}); return;}
       
       req.params.uid = req.params.uid || req.session.user.id;  // default to current user
       var uid = parseInt(req.params.uid);  // params are strings so first convert to integer
@@ -375,6 +392,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', 'User not found!');
         res.status = 404;
         res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'user', message: 'user profile ' + uid + ' not found'});
         return;
       }
     
@@ -388,6 +406,7 @@ module.exports = function(app){
               handy.system.systemMessage.set(req, 'danger', err.message);
               res.status = 404;
               res.redirect('/notfound');
+              handy.system.logger.record('warn', {error: err, message: 'user profile not found: id: ' + requestedUser.id})
               requestedUser = null;  // free up memory
               return;
             }
@@ -396,6 +415,7 @@ module.exports = function(app){
             pageInfo.title = 'User profile: ' + req.params.uid;
             res.render('userprofile', {pageInfo: pageInfo});
             requestedUser = null;  // free up memory
+            handy.system.logger.record('info', {req: req, category: 'user', message: 'user profile ' + uid + ' displayed'});
             return;
           });
           break;
@@ -405,6 +425,7 @@ module.exports = function(app){
             if(err || !approved){
               handy.system.systemMessage.set(req, 'danger', 'You do not have permission to edit that user profile');
               res.redirect('/accessdenied');
+              handy.system.logger.record('warn', {req: req, category: 'user', message: 'access denied to user profile '});
               return;
             }
 
@@ -416,7 +437,8 @@ module.exports = function(app){
                 handy.system.systemMessage.set(req, 'danger', err.message);
                 res.status = 404;
                 res.redirect('/notfound');
-                requestedUser = null;  // free up memory
+                handy.system.logger.record('error', {error: err, message: 'user profile not found. id: ' + requestedUser.id});
+                requestedUser = null;  // free up memory 
                 return;
               } 
             
@@ -425,6 +447,7 @@ module.exports = function(app){
               pageInfo.user = this
               res.render('userprofile', {pageInfo: pageInfo});
               requestedUser = null;  // free up memory
+              handy.system.logger.record('info', {req: req, category: 'user', message: 'user profile ' + uid + ' displayed'});
               return;
             }).bind(requestedUser));
           })(req, res);
@@ -450,10 +473,11 @@ module.exports = function(app){
       info: {title: 'Change your password | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'password reset page - error in prepGetRequest'}); return;}
       
       pageInfo.other.type = req.params.action;
       res.render('passwordchange', {pageInfo: pageInfo});
+      handy.system.logger.record('info', {req: req, category: 'system', message: 'display password change page'});
       return;
     });
   });
@@ -468,7 +492,7 @@ module.exports = function(app){
       info: {title: 'Cancel user account | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'account cancel page - error in prepGetRequest'}); return;}
       
       // set uid to current user id, if uid is not supplied
       var uid = typeof req.params.uid !== 'undefined' ? parseInt(req.params.uid) : req.session.user.id
@@ -480,6 +504,7 @@ module.exports = function(app){
           // user is cancelling their own account so go ahead
           pageInfo.other.cancelUser = [{id: uid, name: pageInfo.user.name, email: pageInfo.user.email, createdate: pageInfo.user.createdate.toString()}];
           res.render('cancelaccount', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'user', message: 'display account cancellation form. user: ' + uid});
           return;
           break;
         case false:
@@ -488,6 +513,7 @@ module.exports = function(app){
             if(err || !approved){
               handy.system.systemMessage.set(req, 'danger', 'You do not have permission to cancel that user account');
               res.redirect('/accessdenied');
+              handy.system.logger.record('warn', {req: req, error: err, message: 'error or permission denied to cancel user account: ' + uid});
               return;
             }
 
@@ -498,12 +524,14 @@ module.exports = function(app){
               if(err){
                 handy.system.systemMessage.set(req, 'danger', 'Error locating user account');
                 res.redirect('/notfound');
+                handy.system.logger.record('error', {error: err, message: 'user account to be canceled can not be found. id: ' + cancelUser.id});
                 cancelUser = null;  // free up memory
                 return;
               }
               pageInfo.other.cancelUser = [{id: this.id, name: this.name, email: this.email, createdate: this.createdate.toString()}];
               res.render('cancelaccount', {pageInfo: pageInfo});
               cancelUser = null;  // free up memory
+              handy.system.logger.record('info', {req: req, category: 'user', message: 'display account cancellation form. user: ' + uid});
               return;
             }).bind(cancelUser));
           })(req, res);
@@ -526,7 +554,7 @@ module.exports = function(app){
       info: {title: 'Create new ' + req.params.type + ' | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'content creation page - error in prepGetRequest'}); return;}
       
       // get list of all content types in the system
       var contentTypeList = handy.system.systemVariable.getConfig('contentTypeList');
@@ -542,6 +570,7 @@ module.exports = function(app){
       pageInfo.other.action = 'create';
 
       res.render('contentdisplay', {pageInfo: pageInfo});
+      handy.system.logger.record('info', {req: req, category: 'system', message: 'display content creation page'});
       return;
     });
   });
@@ -552,7 +581,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'story display page - error in prepGetRequest'}); return;}
       
       var contentType = 'story';
 
@@ -564,6 +593,7 @@ module.exports = function(app){
       story.load(urlId, 'id', function(err, result){
         if(err){
           story = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading story for display'}); 
           return _endProcessingWithFail(err, req, res);
         }
 
@@ -575,11 +605,13 @@ module.exports = function(app){
         if(!story.published || story.deleted){
           handy.system.redirectBack(0, req, res);
           story = null;
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'story not displayed because not published or deleted. id: ' + urlId});
           return;
         }
       
         res.send('this will display the story page\n' + JSON.stringify(story, '\t'));
         story = null; // free up memory
+        handy.system.logger.record('info', {req: req, category: 'content', message: 'displayed story: ' + urlId});
       });
     });
   });
@@ -589,10 +621,9 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'story edit page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'story';
-      //pageInfo.other.categoryList = handy.system.systemVariable.getConfig('categoryList');
       pageInfo.other.action = 'edit';
     
       var contentType = 'story';
@@ -602,14 +633,21 @@ module.exports = function(app){
       pageInfo.other.contentId = urlId;
     
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error loading story for display. id: ' + urlId}); 
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to open story for editing. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
       
         // get content from cache
         var story = new handy.content.Story();
         story.load(urlId, 'id', function(err, result){
           if(err){
             story = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading story for editing. id: ' + story.id}); 
             return _endProcessingWithFail(err, req, res);
           }
         
@@ -618,6 +656,7 @@ module.exports = function(app){
           if(story.deleted){
             handy.system.redirectBack(0, req, res);
             story = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'story can not be edited. id: ' + urlId});
             return;
           }
 
@@ -635,6 +674,7 @@ module.exports = function(app){
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
         
           res.render('contentdisplay', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'story opened for editing. id: ' + urlId});
         });
       });
     });
@@ -645,7 +685,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return; }
+      if(err){handy.system.logger.record('error', {error: err, message: 'story deletion page - error in prepGetRequest'}); return; }
       
       pageInfo.other.contentType = 'story';
       pageInfo.other.action = 'delete';
@@ -657,14 +697,21 @@ module.exports = function(app){
       pageInfo.other.contentId = urlId;
 
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete story'});
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. story can not be opened for deletion. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
       
         // get content from cache
         var story = new handy.content.Story();
         story.load(urlId, 'id', function(err, result){
           if(err){
             story = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading story for deletion'}); 
             return _endProcessingWithFail(err, req, res);
           }
         
@@ -673,6 +720,7 @@ module.exports = function(app){
           if(story.deleted){
             handy.system.redirectBack(0, req, res);
             story = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'story already deleted. story can not be opened for deletion. id: ' + urlId});
             return;
           }
 
@@ -689,6 +737,7 @@ module.exports = function(app){
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
 
           res.render('contentdisplay', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'story opened for deletion. id: ' + urlId});
           return;
         });
       });
@@ -703,18 +752,23 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return; }
+      if(err){handy.system.logger.record('error', {error: err, message: 'comment display page - error in prepGetRequest'}); return; }
       
       var contentType = 'comment';
 
       var urlId = _getUrlId(req, contentType);
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for display. id: ' + req.params.id});
+        res.redirect('/notfound'); 
+        return;
+      }
       // get content from cache
       var comment = new handy.content.Comment();
 
       comment.load(urlId, 'id', function(err, result){
         if(err){
           comment = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'comment could not be loaded. id: ' + comment.id}); 
           return _endProcessingWithFail(err, req, res);
         }
 
@@ -726,11 +780,13 @@ module.exports = function(app){
         if(!comment.published || comment.deleted){
           handy.system.redirectBack(0, req, res);
           comment = null;
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not published or deleted. comment can not be displayed. id: ' + urlId});
           return;
         }
       
         res.send('this will display the comment page\n' + JSON.stringify(comment, '\t'));
         comment = null; // free up memory
+        handy.system.logger.record('info', {req: req, category: 'content', message: 'comment displayed. id: ' + urlId});
       });
     });
   });
@@ -740,7 +796,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return; }
+      if(err){handy.system.logger.record('error', {error: err, message: 'comment edit page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'comment';
       pageInfo.other.action = 'edit';
@@ -752,14 +808,21 @@ module.exports = function(app){
       pageInfo.other.contentId = urlId;
     
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error checking user permission to edit comment. id: ' + urlId}); 
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. comment can not be opened for editing. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
       
         // get content from cache
         var comment = new handy.content.Comment();
         comment.load(urlId, 'id', function(err, result){
           if(err){
             comment = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading comment for editing. id: ' + comment.id}); 
             return _endProcessingWithFail(err, req, res);
           }
         
@@ -768,6 +831,7 @@ module.exports = function(app){
           if(comment.deleted){
             handy.system.redirectBack(0, req, res);
             comment = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment already deleted. comment can not be opened for editing. id: ' + urlId});
             return;
           }
 
@@ -784,6 +848,7 @@ module.exports = function(app){
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
         
           res.render('contentdisplay', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment opened for editing. id: ' + urlId});
         });
       });
     });
@@ -794,7 +859,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){return; }
+      if(err){handy.system.logger.record('error', {error: err, message: 'comment deletion page - error in prepGetRequest'}); return; }
       
       pageInfo.other.contentType = 'comment';
       pageInfo.other.action = 'delete';
@@ -802,18 +867,29 @@ module.exports = function(app){
       var contentType = 'comment';
       var uid = parseInt(req.session.user.id);
       var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for deletion. id: ' + req.params.id});
+        return;
+      }
       pageInfo.other.contentId = urlId;
     
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete comment. id: ' + urlId}); 
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. comment can not be opened for deletion. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
       
         // get content from cache
         var comment = new handy.content.Comment();
         comment.load(urlId, 'id', function(err, result){
           if(err){
             comment = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading comment for deletion'}); 
             return _endProcessingWithFail(err, req, res);
           }
         
@@ -822,6 +898,7 @@ module.exports = function(app){
           if(comment.deleted){
             handy.system.redirectBack(0, req, res);
             comment = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment already deleted. comment can not be opened for deletion. id: ' + urlId});
             return;
           }
 
@@ -838,6 +915,7 @@ module.exports = function(app){
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
         
           res.render('contentdisplay', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment opened for deletion. id: ' + urlId});
         });
       });
     });
@@ -851,17 +929,21 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'category display page - error in prepGetRequest'}); return;}
       
       var contentType = 'category';
 
       var urlId = _getCategoryId(req, contentType);
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound'); 
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'category not found. id: ' + req.params.id});
+        return;}
       // get content from cache
       var category = new handy.content.Category();
       category.load(urlId, 'id', function(err, result){
         if(err){
           category = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading category for display. id: ' + urlId}); 
           return _endProcessingWithFail(err, req, res);
         }
 
@@ -871,11 +953,13 @@ module.exports = function(app){
         if(category.deleted){
           handy.system.redirectBack(0, req, res);
           category = null;
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted.  category can not be displayed. id: ' + urlId});
           return;
         }
 
         res.send('this will display the category page\n' + JSON.stringify(category, '\t'));
         category = null; // free up memory
+        handy.system.logger.record('info', {req: req, category: 'content', message: 'category displayed. id: ' + urlId});
         return;
       });
     });
@@ -886,7 +970,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'category edit page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'category';
       pageInfo.other.action = 'edit';
@@ -894,16 +978,27 @@ module.exports = function(app){
       var contentType = 'category';
 
       var urlId = _getCategoryId(req, contentType);
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound'); 
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'category can not be found. id: ' + req.params.id});
+        return;
+      }
       pageInfo.other.contentId = urlId;
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error checking user permission to edit category. id: ' + urlId}); 
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. category can not be opened for editing. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
         // get content from cache
         var category = new handy.content.Category();
         category.load(urlId, 'id', function(err, result){
           if(err){
             category = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading category for editing. id: ' + category.id}); 
             return _endProcessingWithFail(err, req, res);
           }
 
@@ -920,10 +1015,12 @@ module.exports = function(app){
           if(category.deleted){
             handy.system.redirectBack(0, req, res);
             category = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted. category can not be opened for editing. id: ' + urlId});
             return;
           }
           res.render('contentdisplay', {pageInfo: pageInfo});
           category = null; // free up memory
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'category opened for editing. id: ' + urlId});
           return;
         });
       });
@@ -936,7 +1033,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'category deletion page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'category';
       pageInfo.other.action = 'delete';
@@ -944,16 +1041,27 @@ module.exports = function(app){
       var contentType = 'category';
 
       var urlId = _getCategoryId(req, contentType);
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'category not found. id: ' + req.params.id}); 
+        return;
+      }
       pageInfo.other.contentId = urlId;
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
-        if(err){return _endProcessingWithFail(err, req, res);}
-        if(!result){return _endProcessingWithFail(null, req, res);}
+        if(err){
+          handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete category. id: ' + urlId}); 
+          return _endProcessingWithFail(err, req, res);
+        }
+        if(!result){
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. category can not be opened for deletion. id: ' + urlId});
+          return _endProcessingWithFail(null, req, res);
+        }
         // get content from cache
         var category = new handy.content.Category();
         category.load(urlId, 'id', function(err, result){
           if(err){
             category = null; // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error loading category for deletion'}); 
             return _endProcessingWithFail(err, req, res);
           }
 
@@ -970,10 +1078,12 @@ module.exports = function(app){
           if(category.deleted){
             handy.system.redirectBack(0, req, res);
             category = null;
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted.  category can not be opened for deletion. id: ' + urlId});
             return;
           }
           res.render('contentdisplay', {pageInfo: pageInfo});
           category = null; // free up memory
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'category opened for deletion. id: ' + urlId});
           return;
         });
       });
@@ -1012,6 +1122,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', err.message);
         res.redirect('/');
         verifyUser = null;  // free up memory
+        handy.system.logger.record('error', {error: err, message: 'error verifying one-time link'}); 
         return;
       }
 
@@ -1024,6 +1135,7 @@ module.exports = function(app){
               handy.system.systemMessage.set(req, 'danger', err.message);
               res.redirect('/');
               verifyUser = null;  // free up memory
+              handy.system.logger.record('error', {error: err, message: 'error logging user in after verifying one-time link. id: ' + verifyUser.id}); 
               return;
             }
             handy.user.postUserVerificationProcessing([this.id], (function(err){
@@ -1031,11 +1143,13 @@ module.exports = function(app){
                 handy.system.systemMessage.set(req, 'danger', 'Your email address has been verified but an error occured with post verification processing: ', err);
                 res.redirect('/');
                 verifyUser = null;  // free up memory
+                handy.system.logger.record('error', {error: err, message: 'error with post verification processing after verifying one-time link. id: ' + verifyUser.id}); 
                 return;
               }
               // set success message
               handy.system.systemMessage.set(req, 'success', 'Your email address has been verified, welcome!');
               res.redirect('/welcomepage');
+              handy.system.logger.record('info', {req: req, category: 'user', message: 'user one-time link verified. id: ' + verifyUser.id});
               verifyUser = null;  // free up memory
               return;
             }).bind(this));
@@ -1044,12 +1158,14 @@ module.exports = function(app){
         case 'link expired':
           handy.system.systemMessage.set(req, 'danger', 'This link has expired.  Please <a class="alert-link" href="/requestonetimelink?type=email&email=' + encodeURIComponent(this.email) + '">request another verification email</a> be sent to you');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time link verification failed. link expired. id: ' + verifyUser.id});
           verifyUser = null;  // free up memory
           return;
           break;
         case 'user not found':
           handy.system.systemMessage.set(req, 'danger', 'Verification failed! User not found.');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time link verification failed.  user not found. id: ' + verifyUser.id});
           verifyUser = null;  // free up memory
           return;
           break;
@@ -1057,6 +1173,7 @@ module.exports = function(app){
         case 'match failed':
           handy.system.systemMessage.set(req, 'danger', 'Verification failed! Try again or <a class="alert-link" href="/requestonetimelink?type=email&email=' + encodeURIComponent(this.email) + '">request another verification email</a> be sent to you');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'one-time link match failed. id: ' + verifyUser.id});
           verifyUser = null;  // free up memory
           return;
           break;
@@ -1091,6 +1208,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
         res.redirect('/');
         verifyUser = null;  // free up memory
+        handy.system.logger.record('error', {error: err, message: 'error loading user requesting one-time link. id: ' + verifyUser.id}); 
         return;
       }
       // generate one-time link
@@ -1098,6 +1216,7 @@ module.exports = function(app){
         if(err){
           handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
           res.redirect('/');
+          handy.system.logger.record('error', {error: err, message: 'error creating one-time link. id: ' + verifyUser.id}); 
           verifyUser = null;  // free up memory
           return;
         }
@@ -1106,7 +1225,8 @@ module.exports = function(app){
           if(err){
             handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
             res.redirect('/');
-            verifyUser = null;  // free up memory
+            handy.system.logger.record('error', {error: err, message: 'error saving user account after generating one-time link. id: ' + verifyUser.id});
+            verifyUser = null;  // free up memory 
             return;
           }
           // send the notification to the user
@@ -1127,12 +1247,14 @@ module.exports = function(app){
             if(err){
               handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Verification email was not sent');
               res.redirect('/');
+              handy.system.logger.record('error', {error: err, message: 'error sending email to user after generating one-time link. id: ' + verifyUser.id}); 
               verifyUser = null;  // free up memory
               return;
             }
             // send success message to user
             handy.system.systemMessage.set(req, 'success', 'Verification link has been sent to your email address, please check your mailbox');
             res.redirect('/');
+            handy.system.logger.record('info', {req: req, category: 'user', message: 'one-time link requested and sent. id: ' + verifyUser.id});
             verifyUser = null;  // free up memory
             return;
           }).bind(this));
@@ -1167,6 +1289,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', err.message);
         res.redirect('/');
         testUser = null;  // free up memory
+        handy.system.logger.record('error', {error: err, message: 'error verifying one-time link for user login. email: ' + testUser.email}); 
         return;
       }
       
@@ -1178,36 +1301,43 @@ module.exports = function(app){
             if(err){
               handy.system.systemMessage.set(req, 'danger', err.message);
               res.redirect('/');
-              testUser = null;  // free up memory
+              handy.system.logger.record('error', {error: err, message: 'error logging in user after one-time login verification successful. id: ' + testUser.id});
+              testUser = null;  // free up memory 
               return;
             }
             // set success message and ask user to set a new password
             handy.system.systemMessage.set(req, 'success', 'Please select a new password');
             res.redirect('/password/reset');
+            handy.system.logger.record('info', {req: req, category: 'user', message: 'user one-time login successful. id: ' + testUser.id});
+            testUser = null;  // free up memory
             return;
           }).bind(this));
           break;
         case 'link expired':
           handy.system.systemMessage.set(req, 'danger', 'This link has expired.  Please <a class="alert-link" href="/requestonetimelink?type=password&email=' + encodeURIComponent(this.email) + '">request another verification email</a> be sent to you');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time login unsuccessful. link expired. id: ' + testUser.id});
           testUser = null;  // free up memory
           return;
           break;
         case 'user not found':
           handy.system.systemMessage.set(req, 'danger', 'Verification failed! User not found.');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time login unsuccessful. user not found. id: ' + testUser.id});
           testUser = null;  // free up memory
           return;
           break;
         case 'no previous request':
           handy.system.systemMessage.set(req, 'danger', 'Password reset and verification links can only be used once.  This link may already have been used.  Please <a class="alert-link" href="/requestonetimelink?type=password&email=' + req.query.email + '">request a new link</a> to be sent to your email address');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time login unsuccessful. no previous request for one-time login link. id: ' + testUser.id});
           testUser = null;
           return;
           break;
         case 'match failed':
           handy.system.systemMessage.set(req, 'danger', 'Verification failed! Try again or <a class="alert-link" href="/requestonetimelink?type=password&email=' + encodeURIComponent(this.email) + '">request another verification email</a> be sent to you');
           res.redirect('/');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user one-time login unsuccessful. link does not match. id: ' + testUser.id});
           testUser = null;  // free up memory;
           return;
           break;

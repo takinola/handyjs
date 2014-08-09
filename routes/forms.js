@@ -2,6 +2,7 @@
  * Form POST processing
  */
  var _ = require('underscore')
+  , async = require('async')
   , handy = require('../../handy/lib/handy').get('handy')
   , express = require('express')
   ;
@@ -20,9 +21,7 @@ module.exports = function(app){
 
   // siteInstall form - Tested
   siteinstall.post('/', handy.user.requireAuthenticationStatus('unauthenticated'), handy.system.validateForm('siteInstall'), function(req, res){
-    console.log('starting siteinstall...');
     handy.bootstrap.runInstallation(req, res, function(err){
-      console.log('runInstallation complete: ', err);
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'something went wrong with the installation!\n' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
@@ -43,6 +42,7 @@ module.exports = function(app){
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'Invalid email or password!');
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('warn', {req: req, category: 'user', message: 'user login authentication failed - invalid email or password. id: ' + req.body.userEmail});
         potentialUser = null;  // free up memory
         return
       }
@@ -51,12 +51,14 @@ module.exports = function(app){
         if(err){
           handy.system.systemMessage.set(req, 'danger', 'Invalid email or password!');
           handy.system.redirectBack(0, req, res);  // redirect to previous page
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user login failed - invalid email or password. id: ' + req.body.userEmail});
           potentialUser = null;  // free up memory
           return;
         }
         
         handy.system.systemMessage.set(req, 'success', 'Welcome '+ potentialUser.name);
         res.redirect(destination);
+        handy.system.logger.record('info', {req: req, category: 'user', message: 'user login successful. id: ' + potentialUser.id});
         potentialUser = null;  // free up memory
         return;
       });
@@ -72,6 +74,7 @@ module.exports = function(app){
       if(err){
         handy.system.systemMessage.set(req, 'danger', err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('warn', {req: req, category: 'user', message: 'user registration failed. err: ' + err.message});
         newUser = null;  // free up memory
         return;
       }
@@ -80,6 +83,7 @@ module.exports = function(app){
           // registration successful and new user has been logged in
           handy.system.systemMessage.set(req, 'success', 'New user registration successful');
           res.redirect(destination);
+          handy.system.logger.record('info', {req: req, category: 'user', message: 'user registration successful. id: ' + newUser.id});
           newUser = null;  // free up memory
           return;
           break;
@@ -94,6 +98,7 @@ module.exports = function(app){
 
           handy.system.systemMessage.set(req, 'success', message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user registration successful but welcome mail not sent. id: ' + newUser.id});
           newUser = null;  // free up memory
           return;
           break;
@@ -108,8 +113,10 @@ module.exports = function(app){
     resetUser.initiatePasswordReset(req, (function(err){
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'password reset failed. ' + err.message);
+        handy.system.logger.record('warn', {req: req, category: 'user', message: 'user password reset failed. id: ' + resetUser.id});
       } else {
         handy.system.systemMessage.set(req, 'success', 'Instructions to reset your password have been sent to your email address');
+        handy.system.logger.record('info', {req: req, category: 'user', message: 'user password reset successful. id: ' + resetUser.id});
       }
       handy.system.redirectBack(0, req, res);  // redirect to previous page
       resetUser = null;  // free up memory
@@ -131,6 +138,44 @@ module.exports = function(app){
       }
       
       // set cron tasks
+      var asyncFn = [];
+      var freq;
+      if(req.body.backupFreq && req.body.backupDestinationType && req.body.backupDestination){
+        asyncFn.push(
+          function(asyncCallback){
+            freq = parseInt(req.body.backupFreq) * 60;
+            handy.system.addCronTask('handy scheduled backup', handy.system.backupDatabase, freq, function(err){
+              asyncCallback(err);
+            });
+          }
+        );
+      }
+
+      if(req.body.reportFreq && req.body.reportDestination){
+        asyncFn.push(
+          function(asyncCallback){
+            freq = parseInt(req.body.reportFreq) * 60;
+            handy.system.addCronTask('handy scheduled activity report', handy.system.logger.report, freq, function(err){
+              asyncCallback(err);
+            });
+          }  
+        );
+      }
+
+      // run async.parallel if there are cron tasks
+      if(asyncFn.length > 0){
+        async.parallel(asyncFn, function(err){
+          if(err){handy.system.systemMessage.set(req, 'danger', 'Some or all cron tasks could not be configured')};
+          handy.system.systemMessage.set(req, 'success', 'Changes saved');
+          handy.system.redirectBack(0, req, res);  // redirect to previous page
+          return; 
+        });
+      } else {
+          handy.system.systemMessage.set(req, 'success', 'Changes saved');
+          handy.system.redirectBack(0, req, res);  // redirect to previous page
+          return; 
+      }
+/*
       if(req.body.backupFreq && req.body.backupDestinationType && req.body.backupDestination){
         var freq = parseInt(req.body.backupFreq) * 60;
         handy.system.addCronTask('handy scheduled backup', handy.system.backupDatabase, freq, function(err){
@@ -144,6 +189,7 @@ module.exports = function(app){
         handy.system.redirectBack(0, req, res);  // redirect to previous page
         return; 
       }
+      */
     });
   });
 
@@ -356,6 +402,7 @@ module.exports = function(app){
     if(typeof req.params.uid === 'undefined'){
       handy.system.systemMessage.set(req, 'danger', 'Please specify a valid user account');
       res.redirect('/notfound'); 
+      handy.system.logger.record('warn', {req: req, category: 'user', message: 'user account cancellation failed. invalid user account. id: ' + req.params.uid});
       return;
     }
     
@@ -368,6 +415,7 @@ module.exports = function(app){
       handy.user.checkPermission('user.User', ["can modify other users' accounts"], function(err, approved){
         if(err || !approved){
           handy.system.systemMessage.set(req, 'danger', 'You do not have permission to request this account cancellation');
+          handy.system.logger.record('warn', {req: req, category: 'user', message: 'user account cancellation failed. permission denied. id: ' + uid});
           res.redirect('/accessdenied');
           return;
         }
@@ -387,6 +435,7 @@ module.exports = function(app){
       var cancelUser = new handy.user.User();
       cancelUser.cloneObject(req.session.user);
       _cancelUserAccountAndLogoutUser.bind(cancelUser)(req, res, 'logout');
+      handy.system.logger.record('info', {req: req, category: 'user', message: 'user account cancelled. id: ' + cancelUser.id});
       cancelUser = null;  // free up memory
       return;
     }
@@ -413,6 +462,7 @@ module.exports = function(app){
       if(err){
         handy.system.systemMessage.set(req, 'danger', err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('error', {error: err, message: 'error approving pending user account registration requests. uid list: ' + uidList.toString()});
         return;
       }
       
@@ -420,10 +470,12 @@ module.exports = function(app){
       handy.content.makeUserContentPublished(uidList, req, res, function(err_1){
         if(err_1){
           handy.system.systemMessage.set(req, 'danger', 'Some of drafts created by these users may not have been automatically published.  Please manually edit them in order to make the drafts visible to other users on the site');
+          handy.system.logger.record('error', {error: err_1,  message: 'error publishing content for newly created users. uid list: ' + uidList.toString()});
         }
         
         handy.system.systemMessage.set(req, 'success', 'Selected accounts approved');
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('info', {req: req, category: 'user', message: 'user account registration approvals successful. uid list: ' + uidList.toString()});
         return;
       });
     });
@@ -581,6 +633,7 @@ module.exports = function(app){
         admin = null;  // free up memory
         handy.system.systemMessage.set(req, 'danger', 'Error sending message.  Please try again: ' + err.message);
         handy.system.redirectBack(0, req, res);
+        handy.system.logger.record('error', {error: err, message: 'error sending contact message'});
         return;
       }
       var receipient = {email: admin.email};
@@ -602,6 +655,7 @@ module.exports = function(app){
         }
         handy.system.systemMessage.set(req, 'success', 'Message sent.  We will be in touch shortly');
         handy.system.redirectBack(0, req, res);
+        handy.system.logger.record('info', {req: req, category: 'system', message: 'contact message sent'});
         return;
       });
     });
@@ -622,12 +676,14 @@ function _createNewContent(req, res, destination){
     if(err){
       handy.system.systemMessage.set(req, 'danger', 'Error creating a new ' + type + ': ' + err.message);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('error', {error: err, message: 'Error creating new content: ' + type});
       return;
     }
 
     if(!flag){
       handy.system.systemMessage.set(req, 'danger', 'You are not authorized to create a new ' + type);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('warn', {req: req, category: 'content', message: 'user not authorized to create content: ' + type});
       return;
     }
   
@@ -641,6 +697,7 @@ function _createNewContent(req, res, destination){
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'Error creating new ' + type + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('error', {error: err, message: 'Error checking user permission to create content. id: ' + seed.creator});
         return;
       }
       
@@ -651,10 +708,12 @@ function _createNewContent(req, res, destination){
         if(err){
           handy.system.systemMessage.set(req, 'danger', 'Error creating a new ' + type + ': ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
+          handy.system.logger.record('error', {error: err, message: 'Error creating new content: ' + type});
           return;
         }
     
         handy.system.systemMessage.set(req, 'success', 'New ' + type + ' created');
+        handy.system.logger.record('info', {req: req, category: 'content', message: 'new content created successfully. id: ' + seed.id + ' type: ' + seed.contenttype});
     
         // redirect back if this is a new category being created
         if(type.toLowerCase() === 'category'){
@@ -707,12 +766,14 @@ function _editExistingContent(req, res, destination){
     if(err){
       handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('error', {error: err, message: 'Error editing content. type: ' + contentType + ' id: ' + urlId});
       return;
     }
   
     if(!flag){
       handy.system.systemMessage.set(req, 'danger', 'You do not have the permission to edit this ' + contentType);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('warn', {req: req, category: 'content', message: 'User does not have permission to edit content. type: ' + contentType + ' id: ' + urlId});
       return;
     }
     // create new content instance
@@ -724,6 +785,7 @@ function _editExistingContent(req, res, destination){
         newContent = null;  // free up memory
         handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('error', {error: err, message: 'Error loading content for editing. type: ' + type + ' id: ' + urlId});
         return;
       }
 
@@ -737,6 +799,7 @@ function _editExistingContent(req, res, destination){
           newContent = null;  // free up memory
           handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
+          handy.system.logger.record('error', {error: err, message: 'Error saving edited content. type: ' + type + ' id: ' + urlId});
           return;
         }
         
@@ -749,12 +812,14 @@ function _editExistingContent(req, res, destination){
               newContent = null;  // free up memory
               handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
               handy.system.redirectBack(0, req, res);  // redirect to previous page
+              handy.system.logger.record('error', {error: err, message: 'Error updating system config for edited category. id: ' + newContent.id});
               return;
             }
             
             // redirect back (or go to the specified destination)
             handy.system.systemMessage.set(req, 'success', contentType + ' edit succesful');
             !destination ? handy.system.redirectBack(0, req, res) : res.redirect(destination);
+            handy.system.logger.record('info', {req: req, category: 'content', message: 'category edited successfully. id: ' + newContent.id});
             newContent = null;  // free up memory
             return;
           });
@@ -762,6 +827,7 @@ function _editExistingContent(req, res, destination){
           // redirect to view the content that was just edited (or the specified destination)
           handy.system.systemMessage.set(req, 'success', contentType + ' edit succesful');
           !destination ? res.redirect(newContent.url) : res.redirect(destination);
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'content editing succesful. type: ' + type + ' id: ' + newContent.id});
           newContent = null;  // free up memory
           return; 
         }
@@ -792,12 +858,14 @@ function _deleteExistingContent(req, res, destination){
     if(err){
       handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('error', {error: err, message: 'Error checking permission to delete content. type: ' + type + ' id: ' + urlId});
       return;
     }
     
     if(!flag){
       handy.system.systemMessage.set(req, 'danger', 'You do not have the permission to delete this ' + contentType);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
+      handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to delete content. type: ' + type + ' id: ' + urlId});
       return;
     }
     
@@ -810,6 +878,7 @@ function _deleteExistingContent(req, res, destination){
         delContent = null;  // free up memory
         handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
+        handy.system.logger.record('error', {error: err, message: 'Error loading content to be deleted. type: ' + type + ' id: ' + urlId});
         return;
       }
     
@@ -819,6 +888,7 @@ function _deleteExistingContent(req, res, destination){
           delContent = null;  // free up memory
           handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
+          handy.system.logger.record('error', {error: err, message: 'Error deleting content. type: ' + type + ' id: ' + urlId});
           return;
         }
         
@@ -828,6 +898,7 @@ function _deleteExistingContent(req, res, destination){
             delContent = null;  // free up memory
             handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
             handy.system.redirectBack(0, req, res);  // redirect to previous page
+            handy.system.logger.record('error', {error: err, message: 'Error saving deleted content. type: ' + type + ' id: ' + urlId});
             return;
           }
           
@@ -838,15 +909,17 @@ function _deleteExistingContent(req, res, destination){
             delete categoryList[delContent.id];
             handy.system.systemVariable.updateConfig({categoryList: categoryList}, function(err){
               if(err){
-                delContent = null;  // free up memory
                 handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
                 handy.system.redirectBack(0, req, res);  // redirect to previous page
+                handy.system.logger.record('error', {error: err, message: 'Error updating system config for deleted category. id: ' + delContent.id});
+                delContent = null;  // free up memory
                 return;
               }
 
               // redirect to welcomepage
               handy.system.systemMessage.set(req, 'success', contentType + ' succesfully deleted');
               !destination ? handy.system.redirectBack(0, req, res) : res.redirect(destination);
+              handy.system.logger.record('info', {req: req, category: 'content', message: 'category successfully deleted. id: ' + delContent.id});
               delContent = null;  // free up memory
               return;
             });
@@ -854,6 +927,7 @@ function _deleteExistingContent(req, res, destination){
             // redirect to welcomepage
             handy.system.systemMessage.set(req, 'success', contentType + ' succesfully deleted');
             !destination ? res.redirect('/welcomepage') : res.redirect(destination);
+            handy.system.logger.record('info', {req: req, category: 'content',  message: 'content successfully deleted. type: ' + type + ' id: ' + delContent.id});
             delContent = null;  // free up memory
             return; 
           }

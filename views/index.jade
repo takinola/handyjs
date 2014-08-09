@@ -3,6 +3,9 @@ extends layout
 block content
   h1= pageInfo.config.siteName
   br
+  p 
+    a(href='/testpage') go to testpage
+  br
   p Welcome to #{pageInfo.config.siteName}
   br
   p The site email is #{pageInfo.config.siteEmail}

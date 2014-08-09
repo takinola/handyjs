@@ -186,6 +186,25 @@ form.form-horizontal(name='configGeneral', id='configGeneral', action='/configge
           input.form-control(type='text', id='backupDestination', name='backupDestination', placeholder='path or email address', value='#{pageInfo.config.backupDestination}')
           span.help-block The path to the file or email address where the backup files will be delivered.
 
+  .page-header
+    h4 Activity reporting
+      small &nbsp; Periodic activity report settings
+    .well
+      .form-group
+        label.control-label.col-md-2(for='reportFreq') Report generation frequency
+        .col-md-3
+          select.form-control(name='reportFreq', id='reportFreq')
+            +selectdefault(0, 'Never', pageInfo.config.reportFreq)
+            +selectdefault(1, 'One hour', pageInfo.config.reportFreq)
+            +selectdefault(24, 'One day', pageInfo.config.reportFreq)
+            +selectdefault(168, 'One week', pageInfo.config.reportFreq)
+      
+      .form-group
+        label.control-label.col-md-2(for='reportDestination') Report destination
+        .col-md-8
+          input.form-control(type='text', id='reportDestination', name='reportDestination', placeholder='email address e.g. you@gmail.com', value='#{pageInfo.config.reportDestination}')
+          span.help-block The email address where the report will be sent.
+
   .form-group
     .col-md-offset-2.col-md-8
       button.btn.btn-primary(type='submit') Save configuration
