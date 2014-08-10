@@ -4,13 +4,9 @@ TO-DO
 
 Deployment
   - set up cron
+  - Logger picks up wrong IP address (always 127.0.0.1)
   - figure out why hotmail does not accept email from server
-  - Update menus.sh
-    - projects (e.g. myelomalist.com, handyjs.org, handyjs)
-      - prep master repo, push changes,
-      - start, stop, restart remote services
   - modify nginx on virtual-box to pick up public files
-  - check if logger is recording the correct IP address (check on beta or production server)
 
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
