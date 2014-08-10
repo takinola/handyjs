@@ -4,7 +4,6 @@ TO-DO
 
 Deployment
   - set up cron
-  - Logger picks up wrong IP address (always 127.0.0.1)
   - figure out why hotmail does not accept email from server
   - modify nginx on virtual-box to pick up public files
 
