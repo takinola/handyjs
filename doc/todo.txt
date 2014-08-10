@@ -15,13 +15,6 @@ Cache
   - Cache category display (if needed)
   - Cache findContent
 
-Logging
-  - user activity (login, logout, registration, password reset, account cancellation) DONE
-  - content activity (viewing, creation, deletion, publishing) DONE
-  - errors (system errors and exceptions, ) DONE
-  - system (cron activity, email sent, backups, XML sitemap submission, ) DONE
-  - reports (daily email of activity reports - questions asked/answered, new tips, comments, signups, logins) DONE
-
 Permissions system 
  - write forms to assign or unassign roles to users
 
@@ -72,6 +65,13 @@ Question
   - mark question as answered DONE
   - Add "ask question" button to pages DONE
   - Add menu DONE
+
+Logging
+  - user activity (login, logout, registration, password reset, account cancellation) DONE
+  - content activity (viewing, creation, deletion, publishing) DONE
+  - errors (system errors and exceptions, ) DONE
+  - system (cron activity, email sent, backups, XML sitemap submission, ) DONE
+  - reports (daily email of activity reports - questions asked/answered, new tips, comments, signups, logins) DONE
 
 Front page
   - display latest tips
