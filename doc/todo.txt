@@ -4,6 +4,7 @@ TO-DO
 
 Deployment
   - set up cron
+  - what is 410.js and why is it in the header of all my files
   - figure out why hotmail does not accept email from server
   - modify nginx on virtual-box to pick up public files
   - modify ngnix on production to redirect to www version of site
