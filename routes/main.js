@@ -33,14 +33,9 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      handy.system.logger.record('info', {req:req,  category: 'test', message: 'wow!'});
-      var x = new Error('threw error');
-      handy.system.logger.record('error', {error: x, message: 'another error??'});
-      handy.system.logger.report(req, res, 'hourly', function(nullValue, result){
-        console.log(handy.utility.inspect(result));
-        res.render('testpage', {pageInfo: pageInfo});
-      });
-      
+      console.log('cronRecord: ', handy.system.systemVariable.getConfig('cronRecord'));
+      console.log('cronTask: ', handy.system.systemVariable.get('cronTask'));
+      res.render('testpage', {pageInfo: pageInfo});
     });
   });
   
