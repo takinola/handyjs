@@ -257,8 +257,7 @@ module.exports = function(app){
     var path = encodeURIComponent(req.params.path);  //  undo decodeURIComponent automatically applied by req.params
     var cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
     if(path !== cronPath){return res.redirect('/');}  // wrong path parameter, don't run cron
-    
-    //console.log('right cron path.  running cron tasks now...');
+
     // run cron
     handy.system.runCron(req, res, function(err){
       if(err){

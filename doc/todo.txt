@@ -6,6 +6,7 @@ Deployment
   - set up cron
   - figure out why hotmail does not accept email from server
   - modify nginx on virtual-box to pick up public files
+  - modify ngnix on production to redirect to www version of site
 
 Tests
   - write static tests i.e. tests for the APIs but not for the UI (takes too long and are too fragile)
