@@ -6,10 +6,8 @@ General
  - Adding functions to cron is broken.  Cron tasks are specified by maintaining two records (cronRecord and cronTask).  cronRecord keeps track of when last cron executed the function and how often it should be run.  cronTask keeps track of which function should be run by cron.  The issue is that functions cannot be saved to database and so cronTask cannot be saved and must somehow be initialized each time the app restarts.  The current solution is to hard code the functions that go into cronTask which obviously means that tasks cannot be added to cron in production (since they get wiped out each time the app is restarted e.g. each code push). NEED to figure out a way to initialize cronTask in real time. 
 
 Deployment
-  - set up cron
-  - what is 410.js and why is it in the header of all my files
+  - set up cron - main site
   - figure out why hotmail does not accept email from server
-  - modify nginx on virtual-box to pick up public files
   - modify ngnix on production to redirect to www version of site
 
 Tests
