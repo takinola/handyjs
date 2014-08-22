@@ -10,4 +10,7 @@ if pageInfo.googleAnalyticsCode
   - googleAnalyticsCode += "ga('send', 'pageview');";
   
   script
-    #{googleAnalyticsCode}
+    = googleAnalyticsCode
+
+  script
+    != (function(){var x =1;})
