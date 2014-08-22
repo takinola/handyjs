@@ -3,7 +3,6 @@ CODEPOINT
 TO-DO
 
 General
- - Move Google Analytics tracking code inside header
 
 Deployment
   - figure out why hotmail does not accept email from server
