@@ -34,8 +34,8 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
       handy.system.logger.report(req, res, function(nullValue, returnObject){
-        console.log('error: ' + returnObject.err);
-        console.log('activity report: ' + returnObject['activity report']);
+        //console.log('error: ' + returnObject.err);
+        //console.log('activity report: ' + returnObject['activity report']);
         res.render('testpage', {pageInfo: pageInfo});
       });
     });
