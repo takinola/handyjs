@@ -640,10 +640,11 @@ module.exports = function(app){
       var sender = {name: handy.system.systemVariable.getConfig('siteName'), email: handy.system.systemVariable.getConfig('siteEmail')};
       var now = new Date();  
       var subject = '[' + handy.system.systemVariable.getConfig('siteName') + '] Contact Form from ' + now.toDateString();
-      var body = 'Contact form submission\n\n';
-      body += 'Name: ' + req.body.contact_name + '\n';
-      body += 'Email: ' + req.body.contact_email + '\n'
-      body += 'Message: ' + req.body.contact_message;
+      var body = {};
+      body.text = 'Contact form submission\n\n';
+      body.text += 'Name: ' + req.body.contact_name + '\n';
+      body.text += 'Email: ' + req.body.contact_email + '\n'
+      body.text += 'Message: ' + req.body.contact_message;
       var replyAddress = req.body.contact_name ? req.body.contact_name + ' <' + req.body.contact_email + '>' : req.body.contact_email;
     
       handy.system.sendEmail(receipient, sender, subject, body, null, null, replyAddress, function(err){

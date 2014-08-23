@@ -1279,14 +1279,16 @@ module.exports = function(app){
           // send the notification to the user
           var receipient = {name: this.name, email: this.email};
           var sender = {name: handy.system.systemVariable.getConfig('siteName'), email: handy.system.systemVariable.getConfig('siteEmail')};
+          var body; 
+          var subject;
           switch(type){
             case 'email':
-              var subject = handy.system.tokenReplace(handy.system.systemVariable.getConfig('email_verification_resend_subject'), req, this);
-              var body = handy.system.tokenReplace(handy.system.systemVariable.getConfig('email_verification_resend_body'), req, this);   
+              subject = handy.system.tokenReplace(handy.system.systemVariable.getConfig('email_verification_resend_subject'), req, this);
+              body = {text: handy.system.tokenReplace(handy.system.systemVariable.getConfig('email_verification_resend_body'), req, this)};   
               break;
             case 'password':
-              var subject = handy.system.tokenReplace(handy.system.systemVariable.getConfig('password_recovery_subject'), req, this);
-              var body = handy.system.tokenReplace(handy.system.systemVariable.getConfig('password_recovery_body'), req, this);
+              subject = handy.system.tokenReplace(handy.system.systemVariable.getConfig('password_recovery_subject'), req, this);
+              body = {text: handy.system.tokenReplace(handy.system.systemVariable.getConfig('password_recovery_body'), req, this)};
               break;
           }
           
