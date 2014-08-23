@@ -785,7 +785,7 @@ function _editExistingContent(req, res, destination){
         newContent = null;  // free up memory
         handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
-        handy.system.logger.record('error', {error: err, message: 'Error loading content for editing. type: ' + type + ' id: ' + urlId});
+        handy.system.logger.record('error', {error: err, message: 'Error loading content for editing. type: ' + contentType + ' id: ' + urlId});
         return;
       }
 
@@ -799,7 +799,7 @@ function _editExistingContent(req, res, destination){
           newContent = null;  // free up memory
           handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
-          handy.system.logger.record('error', {error: err, message: 'Error saving edited content. type: ' + type + ' id: ' + urlId});
+          handy.system.logger.record('error', {error: err, message: 'Error saving edited content. type: ' + contentType + ' id: ' + urlId});
           return;
         }
         
@@ -827,7 +827,7 @@ function _editExistingContent(req, res, destination){
           // redirect to view the content that was just edited (or the specified destination)
           handy.system.systemMessage.set(req, 'success', contentType + ' edit succesful');
           !destination ? res.redirect(newContent.url) : res.redirect(destination);
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'content editing succesful. type: ' + type + ' id: ' + newContent.id});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'content editing succesful. type: ' + contentType + ' id: ' + newContent.id});
           newContent = null;  // free up memory
           return; 
         }
@@ -858,14 +858,14 @@ function _deleteExistingContent(req, res, destination){
     if(err){
       handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
-      handy.system.logger.record('error', {error: err, message: 'Error checking permission to delete content. type: ' + type + ' id: ' + urlId});
+      handy.system.logger.record('error', {error: err, message: 'Error checking permission to delete content. type: ' + contentType + ' id: ' + urlId});
       return;
     }
     
     if(!flag){
       handy.system.systemMessage.set(req, 'danger', 'You do not have the permission to delete this ' + contentType);
       handy.system.redirectBack(0, req, res);  // redirect to previous page
-      handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to delete content. type: ' + type + ' id: ' + urlId});
+      handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to delete content. type: ' + contentType + ' id: ' + urlId});
       return;
     }
     
@@ -878,7 +878,7 @@ function _deleteExistingContent(req, res, destination){
         delContent = null;  // free up memory
         handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
-        handy.system.logger.record('error', {error: err, message: 'Error loading content to be deleted. type: ' + type + ' id: ' + urlId});
+        handy.system.logger.record('error', {error: err, message: 'Error loading content to be deleted. type: ' + contentType + ' id: ' + urlId});
         return;
       }
     
@@ -888,7 +888,7 @@ function _deleteExistingContent(req, res, destination){
           delContent = null;  // free up memory
           handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
           handy.system.redirectBack(0, req, res);  // redirect to previous page
-          handy.system.logger.record('error', {error: err, message: 'Error deleting content. type: ' + type + ' id: ' + urlId});
+          handy.system.logger.record('error', {error: err, message: 'Error deleting content. type: ' + contentType + ' id: ' + urlId});
           return;
         }
         
@@ -898,7 +898,7 @@ function _deleteExistingContent(req, res, destination){
             delContent = null;  // free up memory
             handy.system.systemMessage.set(req, 'danger', 'Error deleting ' + contentType + ': ' + err.message);
             handy.system.redirectBack(0, req, res);  // redirect to previous page
-            handy.system.logger.record('error', {error: err, message: 'Error saving deleted content. type: ' + type + ' id: ' + urlId});
+            handy.system.logger.record('error', {error: err, message: 'Error saving deleted content. type: ' + contentType + ' id: ' + urlId});
             return;
           }
           
@@ -927,7 +927,7 @@ function _deleteExistingContent(req, res, destination){
             // redirect to welcomepage
             handy.system.systemMessage.set(req, 'success', contentType + ' succesfully deleted');
             !destination ? res.redirect('/welcomepage') : res.redirect(destination);
-            handy.system.logger.record('info', {req: req, category: 'content',  message: 'content successfully deleted. type: ' + type + ' id: ' + delContent.id});
+            handy.system.logger.record('info', {req: req, category: 'content',  message: 'content successfully deleted. type: ' + contentType + ' id: ' + delContent.id});
             delContent = null;  // free up memory
             return; 
           }

@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  .container-fluid.spacer.fill-screen-height
+
+    mixin displayEditLink(flag)
+      if flag
+        span.editlink
+          a(href=pageInfo.siteinfo.path + '/edit') edit
+          | &nbsp;&nbsp;|&nbsp;&nbsp;
+          a(href=pageInfo.siteinfo.path + '/delete') delete
+
+    .row
+      .col-md-8.col-md-offset-2.spacer
+        if pageInfo.other.commentValue.title
+          h2!= pageInfo.other.commentValue.title
+            +displayEditLink(pageInfo.other.displayEditLink)
+        p!= pageInfo.other.commentValue.body

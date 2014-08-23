@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  .container-fluid.spacer.fill-screen-height
+
+    mixin displayEditLink(flag)
+      if flag
+        span.editlink
+          a(href=pageInfo.siteinfo.path + '/edit') edit
+          | &nbsp;&nbsp;|&nbsp;&nbsp;
+          a(href=pageInfo.siteinfo.path + '/delete') delete
+
+    .row
+      .col-md-offset-2.col-md-8.spacer
+          h2!= pageInfo.other.storyValue.title
+            +displayEditLink(pageInfo.other.displayEditLink)
+          p!= pageInfo.other.storyValue.body
+
+      if pageInfo.user.id > 0
+        .col-md-offset-2.col-md-8.spacer
+          form(role='form', id='commentForm', name='commentForm', method='post', action='/content/comment/null/create?destination=' + pageInfo.other.destination)
+            include includes/components/csrf
+            input(type='hidden', name='contentlist', id='contentlist', value=pageInfo.other.storyValue.contentlist)
+            input(type='checkbox', name='published', id='published', value='true', checked, style='display:none;')
+            .form-group
+              textarea.form-control(name='body', rows='5', placeholder='Add your comment', required)
+            .form-group
+              button.btn.btn-success(type='submit') Comment
+      else
+        .col-md-offset-2.col-md-8.spacer
+          p.loginorregisterprompt
+            a(href='/login?destination=' + pageInfo.other.destination) Login
+            | &nbsp;or&nbsp;
+            a(href='/login?tab=register&destination=' + pageInfo.other.destination) register
+            | &nbsp;an account to leave a comment
+            
+    .row
+      .col-md-offset-2.col-md-8.spacer
+        p.lead Comments
+        each comment in pageInfo.other.comments
+          blockquote
+            p!= comment.text
+            footer= comment.creator

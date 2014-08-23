@@ -116,11 +116,11 @@ Download lastest version of Handyjs ([link to GitHub repository](http://www.gith
 ````
 project folder
   |
-  -- handy (handy files)
+  -- handy (handyjs module files)
   |
   -- lib (project files)
   |
-  -- npm_modules (module dependencies installed with npm)
+  -- node_modules (module dependencies installed with npm)
   |
   -- routes (routing files)
   |
@@ -160,6 +160,17 @@ app.use(handywrapper);
 var defaultPort = 2000;
 // set environment variable PORT appropriately for sites hosted on the same server
 app.set('port', process.env.PORT || defaultPort);
+
+/*
+ * the following express modules are already handled by Handyjs and do not need to be declared in the app
+ * csurf
+ * compress
+ * cookie-parser
+ * express-session
+ * body-parser
+ * method-override
+ */ 
+
 
 /* 
  * set routes

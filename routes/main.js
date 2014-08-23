@@ -33,9 +33,11 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      console.log('cronRecord: ', handy.system.systemVariable.getConfig('cronRecord'));
-      console.log('cronTask: ', handy.system.systemVariable.get('cronTask'));
-      res.render('testpage', {pageInfo: pageInfo});
+      handy.system.logger.report(req, res, function(nullValue, returnObject){
+        console.log('error: ' + returnObject.err);
+        console.log('activity report: ' + returnObject['activity report']);
+        res.render('testpage', {pageInfo: pageInfo});
+      });
     });
   });
   
@@ -578,6 +580,8 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'story display page - error in prepGetRequest'}); return;}
       
       var contentType = 'story';
+      pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
+      pageInfo.other.destination = handy.utility.prepDestinationUri(pageInfo.siteinfo.path, 'encode');
 
       var urlId = _getUrlId(req, contentType);
       if(urlId === undefined){res.redirect('/notfound'); return;}
@@ -591,7 +595,14 @@ module.exports = function(app){
           return _endProcessingWithFail(err, req, res);
         }
 
-        pageInfo.title = story.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.title = _.escape(story.title).substr(0, 40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.description = _.escape(story.title) + '. ' + _.escape(story.body.substr(0,130));
+        pageInfo.canonical = req.protocol + '://' + req.host + story.url;
+        pageInfo.other.storyValue = {};
+        pageInfo.other.storyValue.title = _.escape(story.title);
+        pageInfo.other.storyValue.link = story.link;
+        pageInfo.other.storyValue.body = _.escape(story.body).replace(/\r?\n/g, '<br/>');
+        pageInfo.other.storyValue.contentlist = story.contentlist;
       
         // check if story is published or deleted
         !story.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
@@ -603,9 +614,32 @@ module.exports = function(app){
           return;
         }
       
-        res.send('this will display the story page\n' + JSON.stringify(story, '\t'));
-        story = null; // free up memory
-        handy.system.logger.record('info', {req: req, category: 'content', message: 'displayed story: ' + urlId});
+        // get comments
+        pageInfo.other.comments = {};
+        story.getRelatedContent('comment', function(err, commentList){
+          if(err){
+            pageInfo.other.comments = {0:{text: 'comments could not be retrieved at this time', creator: null}};
+            handy.system.logger.record('error', {error: err, message: 'error getting related comments for story. id: ' + story.id});
+          } else {
+            commentList.forEach(function(comm, commId){
+              pageInfo.other.comments[commId] = {text: _.escape(comm.body).replace(/\r?\n/g, '<br/>'), creator: comm.name};
+            });
+          }
+
+          // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
+          var uid = parseInt(req.session.user.id);
+          handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+            if(err || !result){
+              pageInfo.other.displayEditLink = false;
+            } else {
+              pageInfo.other.displayEditLink = true;
+            }
+            res.render('story', {pageInfo: pageInfo});
+            handy.system.logger.record('info', {req: req, category: 'content', message: 'story displayed. id: ' + story.id});
+            story = null; // free up memory
+            return;
+          });
+        });
       });
     });
   });
@@ -749,6 +783,7 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'comment display page - error in prepGetRequest'}); return; }
       
       var contentType = 'comment';
+      pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
 
       var urlId = _getUrlId(req, contentType);
       if(urlId === undefined){
@@ -766,7 +801,14 @@ module.exports = function(app){
           return _endProcessingWithFail(err, req, res);
         }
 
-        pageInfo.title = comment.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.title = ('comment: '+ _.escape(comment.title) + ' - ' + _.escape(comment.body)).substr(0,40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.description = _.escape(comment.title) + '. ' + _.escape(comment.body.substr(0,130));
+        pageInfo.canonical = req.protocol + '://' + req.host + comment.url;
+        pageInfo.other.commentValue = {};
+        pageInfo.other.commentValue.title = _.escape(comment.title);
+        pageInfo.other.commentValue.link = comment.link;
+        pageInfo.other.commentValue.body = _.escape(comment.body).replace(/\r?\n/g, '<br/>');
+        pageInfo.other.commentValue.contentlist = comment.contentlist;
       
         // check if comment is published or deleted
         !comment.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
@@ -777,10 +819,21 @@ module.exports = function(app){
           handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not published or deleted. comment can not be displayed. id: ' + urlId});
           return;
         }
-      
-        res.send('this will display the comment page\n' + JSON.stringify(comment, '\t'));
-        comment = null; // free up memory
-        handy.system.logger.record('info', {req: req, category: 'content', message: 'comment displayed. id: ' + urlId});
+
+        // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
+        var uid = parseInt(req.session.user.id);
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+          if(err || !result){
+            pageInfo.other.displayEditLink = false;
+          } else {
+            pageInfo.other.displayEditLink = true;
+          }
+
+          res.render('comment', {pageInfo: pageInfo});
+          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment displayed. id: ' + comment.id});
+          comment = null; // free up memory
+          return;
+        });
       });
     });
   });
