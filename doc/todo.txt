@@ -7,7 +7,6 @@ General
   - Set permission correctly for access to content
   - create ringers and post content under their names
   - Reach out to people to borrow their audiences. send interview questions to myeloma patients and caregivers and post their responses
-  - modify sublime text defaults - tab size 2 spaces, matching brackets, etc
 
 Documentation
   - explain how to add CSRF protection to forms
