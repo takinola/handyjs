@@ -3,6 +3,7 @@ CODEPOINT
 TO-DO
 
 General
+  - Change email messages (welcome, etc) to be more production ready
   - Modify menu.sh to first see if there have been any changes on handy.js before pushing code to remote repository
   - Set permission correctly for access to content
   - create ringers and post content under their names

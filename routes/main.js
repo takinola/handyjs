@@ -291,8 +291,8 @@ module.exports = function(app){
 
       _.forEach(sitemapConfig.content, function(obj, type){
         if(type.toLowerCase() === contentType.toLowerCase()){
-          freq = obj.freq;
-          priority = obj.priority;
+          freq = obj.freq || sitemapConfig.default.freq;
+          priority = obj.priority || sitemapConfig.default.priority;
         }
       });
       
