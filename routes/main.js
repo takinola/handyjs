@@ -581,7 +581,7 @@ module.exports = function(app){
       
       var contentType = 'story';
       pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
-      pageInfo.other.destination = handy.utility.prepDestinationUri(pageInfo.siteinfo.path, 'encode');
+      pageInfo.other.destination = encodeURIComponent(pageInfo.siteinfo.path);
 
       var urlId = _getUrlId(req, contentType);
       if(urlId === undefined){res.redirect('/notfound'); return;}

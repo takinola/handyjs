@@ -1,6 +1,6 @@
 {
   "name": "handy",
-  "version": "0.0.1",
+  "version": "0.7.0",
   "description": "Handy is a CMS built on Node.js.  It's design goals are simplicity, speed and extensibility.",
   "main": ".lib/handy.js",
   "scripts": {

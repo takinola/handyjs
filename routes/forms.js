@@ -35,8 +35,7 @@ module.exports = function(app){
   // user login form - Tested
   app.post('/userlogin', handy.user.requireAuthenticationStatus('unauthenticated'), handy.system.validateForm('userLogin'), function(req, res){
     // set final redirect destination
-    var destination = req.query.destination === undefined ? '/welcomepage' : handy.utility.prepDestinationUri(req.query.destination, 'decode');
-
+    var destination = req.query.destination === undefined ? '/welcomepage' : req.query.destination;
     var potentialUser = new handy.user.User();
     potentialUser.authenticate(req.body.userEmail, req.body.userPassword, function(err){
       if(err){
@@ -68,7 +67,7 @@ module.exports = function(app){
   // user registration form - Tested (need to test scenario where user needs admin verification)
   app.post('/userregister', handy.system.validateForm('userRegister'), function(req, res){
     // set final redirect destination
-    var destination = req.query.destination === undefined ? '/welcomepage' : handy.utility.prepDestinationUri(req.query.destination, 'decode');
+    var destination = req.query.destination === undefined ? '/welcomepage' : req.query.destination;
     var newUser = new handy.user.User();
     newUser.register(req, (function(err, loginstatus){
       if(err){
@@ -175,21 +174,6 @@ module.exports = function(app){
           handy.system.redirectBack(0, req, res);  // redirect to previous page
           return; 
       }
-/*
-      if(req.body.backupFreq && req.body.backupDestinationType && req.body.backupDestination){
-        var freq = parseInt(req.body.backupFreq) * 60;
-        handy.system.addCronTask('handy scheduled backup', handy.system.backupDatabase, freq, function(err){
-          if(err){handy.system.systemMessage.set(req, 'danger', 'Backup could not be scheduled');}
-          handy.system.systemMessage.set(req, 'success', 'Changes saved');
-          handy.system.redirectBack(0, req, res);  // redirect to previous page
-          return; 
-        });
-      } else {
-        handy.system.systemMessage.set(req, 'success', 'Changes saved');
-        handy.system.redirectBack(0, req, res);  // redirect to previous page
-        return; 
-      }
-      */
     });
   });
 
@@ -578,7 +562,7 @@ module.exports = function(app){
     delete req.body._csrf;
 
     // set final redirect destination
-    var destination = handy.utility.prepDestinationUri(req.query.destination, 'decode');
+    var destination = req.query.destination;
     destination = destination !== 'undefined' ? destination : null;  // if destination is not defined, set to null
     switch(req.params.action.toLowerCase()){
       case 'create':

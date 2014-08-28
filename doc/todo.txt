@@ -3,17 +3,13 @@ CODEPOINT
 TO-DO
 
 General
-  - Change email messages (welcome, etc) to be more production ready
+  - Personalized welcome email - send a personalized email to users upon signup (introduce founder and ask for help).  Basically, a cron job that checks new user accounts since last run and sends them the email.
   - Modify menu.sh to first see if there have been any changes on handy.js before pushing code to remote repository
-  - Set permission correctly for access to content
-  - create ringers and post content under their names
+  - Test restore of backup
   - Reach out to people to borrow their audiences. send interview questions to myeloma patients and caregivers and post their responses
 
 Documentation
   - explain how to add CSRF protection to forms
-  - explain difference between createNewContType, createNewInstance, etc
-  - explain how to theme handyjs routes i.e. modify layout.jade, header.jade and footer.html
-
 
 Deployment
   - figure out why hotmail does not accept email from server

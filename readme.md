@@ -6,7 +6,7 @@ Readme.md
 * [Introduction](#introduction)
 * [Features](#features)
 * [Dependencies](#dependencies)
-* [Installation](#installation)
+* [Getting Started](#getting-started)
 * [API Documentation](#api-docs)
 * [How Handyjs works](#handy-works)
 * [License](#license)
@@ -14,6 +14,8 @@ Readme.md
 
 ## Introduction <a name='introduction'></a>
 Handyjs is a web application template for building Nodejs applications.  Handyjs provides the basic functionality that almost all web apps need e.g. user account management, setting cron tasks, managing content or access control.  By using Handyjs, you can focus your development time more on the features that make your web application truly unique and less on creating generic, but necessary, functionality.  Handyjs also offers the advantage of offloading critical but easy to get wrong functionality like password management and access control so you can be sure your application is built on current best practice.
+
+---
 
 ## Features <a name='features'></a>
 
@@ -58,6 +60,8 @@ Administrators can set finely grained access control settings to determine what 
 
 (learn more about [access control](#access-control-link))
 
+---
+
 ### Content management
 
 #### Content creation
@@ -79,13 +83,15 @@ All content is accessible via a url.  Users can assign a url when creating or ed
 
 (learn more about [content management](#content-management-link))
 
+---
+
 ### System management
 
 #### System configuration
 Site administrators can modify the behaviour of web apps using a form based interface to set configuration options.  These options range from setting custom error pages (404 & 501 pages), deciding who can register and create new accounts, setting the frequency of site backups and log reports, etc.  
 
 #### Email
-Handyjs web apps can send email using a dedicated email server or a transactional email service (Mandrill is the currently implemented option).  To send email using an email server, simply update the settings for the email server (address, port, user, password) or to use Mandrill simply provide the Mandril API key.
+Handyjs web apps can send email using a dedicated email server or a transactional email service (Mandrill is the currently implemented option).  To send email using an email server, simply update the settings for the email server (address, port, user, password) or to use Mandrill, simply provide the Mandril API key.
 
 #### Cron
 Functions can ben executed periodically by adding them to the list of cron tasks.  Handyjs monitors when last the function was executed and ensures cron tasks are performed on schedule.
@@ -102,12 +108,16 @@ Site activity can be logged via the Handyjs API.  Periodic log reports can also 
 #### Backups
 Handyjs can create periodic database backups which can be saved to the server or delivered by email.
 
-## Dependencies <a name='dependencies'></a>
-* Nodejs <version>
-* Redis <version>
-* MySQL <version>
+---
 
-## Installation <a name='installation'></a>
+## Dependencies <a name='dependencies'></a>
+* Nodejs 0.10.25
+* Redis 2.8
+* MySQL 5.6
+
+---
+
+## Getting started <a name='getting-started'></a>
 
 ### Directory structure
 Download lastest version of Handyjs ([link to GitHub repository](http://www.github.com/handyjs)) and place in your project.  The typical file structure for a project built on Handyjs is as follows
@@ -116,7 +126,7 @@ Download lastest version of Handyjs ([link to GitHub repository](http://www.gith
 ````
 project folder
   |
-  -- handy (handyjs module files)
+  -- handy (handy files)
   |
   -- lib (project files)
   |
@@ -161,17 +171,6 @@ var defaultPort = 2000;
 // set environment variable PORT appropriately for sites hosted on the same server
 app.set('port', process.env.PORT || defaultPort);
 
-/*
- * the following express modules are already handled by Handyjs and do not need to be declared in the app
- * csurf
- * compress
- * cookie-parser
- * express-session
- * body-parser
- * method-override
- */ 
-
-
 /* 
  * set routes
  * NOTE: Handy already reserves some routes for use (e.g. '/logout', '/login' etc.  See documentation for full list)
@@ -205,6 +204,10 @@ app.use(function(err, req, res, next){
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };
+
+      /* NOTE: 403accessdenied is a view defined by the web app built on handyjs
+       * and is not part of handyjs
+       */
       res.render('403accessdenied', {pageInfo: pageInfo});
       return;
       break;
@@ -218,6 +221,10 @@ app.use(function(err, req, res, next){
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };
+
+      /* NOTE: 500internalerror is a view defined by the web app built on handyjs
+       * and is not part of handyjs
+       */
       res.render('500internalerror', {pageInfo: pageInfo});
       return;
       break;
@@ -231,15 +238,22 @@ app.use(function(err, req, res, next){
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };
+
+      /* NOTE: 500internalerror is a view defined by the web app built on handyjs
+       * and is not part of handyjs
+       */
       res.render('500internalerror', {pageInfo: pageInfo});
       return;
   }
 });
 
-// set initial function to run after Handy initialization is complete
+/* set initial function to run after Handy initialization is complete
+ * NOTE: In this scenario, project.start is the initializing function for the
+ * web app built on handyjs
+ */
 handy.system.systemVariable.set('initialFunction', project.start);
 
-// initialize handy and start project execution
+// initialize handyjs and start project execution
 handy.bootstrap.initialize(function(err){
   if(err){
     console.log('operating in ' + process.env.NODE_ENV + ' mode.\ninitialization completed with errors: \n', err, '\ninstallation required...');
@@ -259,9 +273,9 @@ http.createServer(app).listen(app.get('port'), function(){
 });
 
 ```
+---
 
-
-### Themeing
+### Theming
 Because Handyjs manages some routes for projects (e.g. login, site configuration, etc) it may be useful to modify the default theming to match the rest of the project.  Handyjs theming is based on the [Bootstrap design framework](http://getbootstrap.com).  Handyjs views are mainly defined by three files
 
 * layout.jade (/handy/views/layout.jade)
@@ -270,6 +284,8 @@ Because Handyjs manages some routes for projects (e.g. login, site configuration
 
 Modify the base views files as needed to match the rest of your site theming
 
+---
+
 ### MySQL database setup
 Set up a MySQl database and user by running the following commands
 
@@ -277,11 +293,15 @@ Set up a MySQl database and user by running the following commands
 CREATE DATABASE <databasename>;
 CREATE USER '<user>'@localhost IDENTIFIED BY '<password>';
 GRANT ALL PRIVILEGES on <databasename> TO '<user>'@localhost;
-FLUSH PRIVILEGES
+FLUSH PRIVILEGES;
 ```
+
+---
 
 ### Redis database setup
 Ensure Redis is running
+
+---
 
 ### Installation
 Start the app
@@ -294,9 +314,552 @@ Pointing the browser to the main page "127.0.0.1:2000" will redirect to the inst
 
 After installation is complete, the site administrator can set various site configuration options.
 
+---
+
+### Routes
+Handyjs controls the following routes.  Overriding these routes in your app may result in unpredictable behaviour (in short, do not override unless you really know what you are doing as some of the behaviour is subtle)
+
+#### '/install'
+The installation wizard.  It only needs to be run once; when the web app is started for the first time
+
+#### '/welcomepage'
+This is the default page authenticated users will see right after logging in.  A custom 'welcomepage' page can be specified in the site settings
+
+#### '/configuration'
+This is where most of the site configuration settings can be accessed.
+
+#### '/configuration/permisssions'
+This page provides a graphical UI to assign permissions and maintain the access control system
+
+#### '/accessdenied'
+This is the default 403 page.  A custom 403 error page can be specified in the site settings
+
+#### '/notfound'
+This is the default 404 page.  Acustom 404 error page can be specified in the site settings
+
+#### '/cron'
+This is the path to activate cron.  Each site has a random cron path (e.g. /cron/random_string) to provide some security against DOS attack via cron
+
+#### '/sitemap.xml'
+This is the XML sitemap
+
+#### '/contact'
+The site contact form
+
+#### '/login'
+User login page.  Users can login, register or request a password reset on this page
+
+#### '/logout'
+User logout
+
+#### '/user'
+Displays various views related to the user
+
+If a user id is provided (e.g. '/user/9'), it displays the profile of the specified user.  If no parameters are provided, it displays the profile of the current user
+
+'/user/:id/password/:action' - displays a password change or reset form (depending on the specified 'action').  Password changes require the user to provide the current password whilst password resets only require the new password.  Password resets are used in the scenario where the user has forgotten their password.
+
+'/user/:id/account/cancel' - displays a page for the user to cancel their account.
+
+#### '/content/create/:type'
+Displays a form for creating content.  For use only with content that ships with Handyjs (i.e. Story, Comment, Category).
+
+#### '/story/:id'
+Displays Story content specified by 'id' ('id' can be the permalink URI or the URL alias of the specified content)
+
+'/story/:id/edit' - displays a form to edit the Story content
+
+'/story/:id/delete' - displays a form to delete the Story content
+
+#### '/comment/:id'
+Displays Comment content specified by 'id' ('id' can be the permalink URI or the URL alias of the specified content)
+
+'/comment/:id/edit' - displays a form to edit the Comment content
+
+'/comment/:id/delete' - displays a form to delete the Comment content
+
+#### '/category/:id'
+Displays Category content specified by 'id' ('id' can be the permalink URI or the URL alias of the specified content)
+
+'/category/:id/edit' - displays a form to edit the Category content
+
+'/category/:id/delete' - displays a form to delete the Category content
+
+#### '/verifyemail/<random_string>'
+This path is used to verify user's email addresses.  When it is required to verify the user's email address (e.g. after a user registers a new account), an email is sent to the email address with a link to this page.  The link will include a random string which is checked against a record in the user account.
+
+#### '/requestonetimelink/<random_string>'
+This path is used to request special one-time links to be sent to user's email addresses (e.g. user requests a password reset email, waits until the password reset link has expired, when they try to use it, they get a message letting them know they will need to request a new password reset link by visiting this page)
+
+#### '/onetimelogin'
+This page provides a password reset screen to users who have utilized a forgotten password link.  It allows them to set a new password before continuing on to the rest of the site.
+
+---
+
 ## API Docs <a name='api-docs'></a>
 
+### System
 
+#### SystemVariable
+systemVariable is the global variable used to pass data across modules in handyjs.  systemVariable has the following methods
+
+##### Get
+Read a property of systemVariable
+
+**arguments**
+* @param {string} key - property to be read
+
+**example**
+```javascript
+var installation_flag = handy.system.systemVariable.get('installation_flag');
+```
+
+##### Set
+Set the value of a property of systemVariable
+
+**arguments**
+* @param {string} key - property to be set
+* @param {various} value - value to set
+
+**example**
+```javascript
+var key = 'installation_flag';
+var value = true;
+handy.system.systemVariable.set(key, value);
+``` 
+
+##### updateConfig
+Set configuration values.  Configuration values are special in that they are stored in the database and are restored everytime the app starts.  There are also a number of default configuration values that are provided.
+
+**arguments**
+* @param {object} update - key value pairs for configuration items to be updated
+
+**example**
+```javascript
+var update = {siteName: 'my first handyjs webapp'};
+handy.system.systemVariable.updateConfig(update, callback);
+```
+
+##### getConfig
+Get the value of a configuration property
+
+**arguments**
+* @param {string} key - name of configuration parameter to read
+
+**example**
+```javascript
+var key = 'siteName';
+var siteName = handy.system.systemVariable.getConfig(key);
+```
+
+#### BaseObject
+Handyjs has a default object that other object types (e.g. content and user objects) build upon.  This means object types built upon the base object inherit the methods and properties of the base object.
+
+The properties of the base object are
+* id: integer identification for each object (unique for each object type)
+* createdate: time stamp indicating when the object was created
+* modifydate: time stamp indicating last time the object was modified 
+* deleted: indication of whether the object has been deleted ("true" means the object has been deleted)
+
+BaseObjects have the following methods
+
+##### Get
+Read the value of a property of the object.  Returns null if attribute does not exist
+
+**arguments**
+* @param {string} key - property to be read
+
+**example**
+```javascript
+var newObject = new handy.system.BaseObject();
+// do a bunch of stuff with newObject
+var key = 'createdate';
+var createDate = newObject.get('createdate');  
+```
+
+#### Set
+Set the value of a property of the object
+
+**arguments**
+ * @param {string} key - the object property to be set
+ * @param {all datatypes} value - the value to which the property is to be set
+
+**example**
+```javascript
+var key = 'deleted';
+newObject.set(key, true);
+```
+#### createTable
+Create database tables to store object records.  This API function is only called during the bootstrap process and should NEVER be used under normal circumstances.  It is included in the documentation only for completeness
+
+**arguments**
+None
+
+**example**
+```javascript
+newObject.createTable(callback);
+```
+
+#### Load
+Load object into memory from database
+
+**arguments**
+ * @param {integer/string} id - unique identifier of the object being loaded
+ * @param {string} type - type of identifier
+
+**example**
+```javascript
+var id = 55;
+var type = 'id';
+newObject.load(id, type, callback);
+```
+
+#### Save
+Save object to database
+
+**arguments**
+none
+
+**example**
+```javascript
+newObject.save(callback);
+```
+
+#### cloneObject
+Update all the properties of the object with those from the source
+also performs some transformations e.g. transforms datetime strings into date objects
+
+NOTE: This function bypasses the validation checks built into BaseObject.set so it is possible to have an object with the wrong value types (as compared to the schema definition)
+
+**arguments**
+ * @param {object} sourceObject - source object which provides all the properties
+
+**example**
+```javascript
+var sourceObject = {
+  id: 6,
+  createdate: "Tue Aug 19 2014 02:56:35 GMT-0400 (EDT)",
+  modifydate: "Tue Aug 19 2014 02:56:35 GMT-0400 (EDT)",
+  deleted: false
+}
+
+var newObject = new handy.syste.BaseObject();
+newObject.cloneObject(sourceObject);
+```
+
+#### systemMessage
+Set and retrieve system messages
+
+System messages are used to inform the user of the state of the system (usually to indicate the result of some action taken)
+
+**arguments**
+ * @param {object} req - express request object
+ * @param {string} msgType - types of system messages e.g. 'success', 'warning' and 'dev'
+ * @param {string} msg - message for display
+ * @param {bool} clearFlag - flag to delete messages after reading. Set to 'true' to delete messages (default)
+
+**example**
+```javascript
+var msgType = 'warning';
+var msg = 'Your password needs to be changed';
+system.systemMessage.set(req, msgType, msg);  // displays message to user asking them to change their password
+```
+
+#### restoreSystemMessage
+Restore system messages before a redirect.  This function is needed to resolve an edge case where system messages are set and then a redirect is issued.  Invoking res.redirect wipes out the previous res object.  This is a problem if the system messages have been transferred from req.session.msgCache to res.locals.sysmessage (as occurs after prepGetRequest has been called).  restoreSystemMessage moves the system messages safely back to req.session.msgCache.
+
+NOTE: Invoke this function before res.redirect if another function (such as prepGetRequest) has moved system messages from req.session.msgCache to res.locals.sysmessage
+
+**arguments**
+ * @param {object} req - expresss request object
+ * @param {object} res - express response object
+
+**example**
+```javascript
+system.prepGetRequest(options, req, res, function(err, pageInfo){
+  system.restoreSystemMessage(req, res);  // ensure system message are restored prior to redirecting
+  res.redirect('/new/destination');
+});
+```
+
+#### sendEmail
+Send email to receipient.
+
+NOTE: if NODE_ENV !== 'production', emails will not be sent.  This is done so development or staging environments can test against live data safely.
+
+Ensure all email related configuration settings are properly set otherwise this API call will fail
+
+**arguments**
+ * @param {object} receipient - email receipient (format: {name: <receipient name>, email: <receipient email>})
+ * @param {object} sender - email sender's address (format: {name: <sender name>, email: <sender email>})
+ * @param {string} subject - email subject
+ * @param {object} body - email body as text and html. (format {text: <body as text>, html: <body as html>})
+ * @param {string} cc (optional) - email cc's address (format address or name <address> or "name <address>")
+ * @param {array} attachment (optional) - array of attachments to email.  format of each attachment {path: <path>, name: <name of file>, data: <base64 data stream>, type: <file type>}
+ * @param {string} replyAddress (optional) - reply to address for the email
+
+**example**
+```javascript
+var receipient = {name: 'john', email: 'john@eample.com'};
+var sender = {name: 'jill', email: 'jill@example.com'};
+var subject = 'want to hike to the top of the hill?';
+var body = {
+  text: 'John\n, want to go hiking on the weekend?\n\nJill',
+  html: '<html header-stuff><html><head></head><body><strong>John</strong><br/>want to go hiking on the weekend?<br/><br/>Jill</body></html>'
+};
+var attachment = {
+  name: 'map_of_hill',
+  path: '/path/to/image',
+  type: 'image/jpeg'
+};
+
+system.sendEmail(receipient, sender, subject, body, null, attachment, null, function(err){
+  // email sent
+});
+
+```
+
+#### tokenReplace
+Replace tokens in strings
+
+**arguments**
+ * @param {string} message - message on which to perform token replacement
+ * @param {object} req - current request object
+ * @param {object} currentUser - (optional) basis for token replacements regarding current user. If user argument is not provided, the current session user is assumed to be the current user
+
+**example**
+```javascript
+var messageTemplate = '[site:name] message.  Hi [user:name], hope you are having a good day';
+var message = system.TokenReplace(messageTemplate, req);
+console.log(message);  // 'Handyjs.org message.  Hi Bob, hope you are having a good day'
+```
+
+#### recordUrlHistory
+Keep a record of the user's url history (middleware). This is used to perform url redirects to any previous locations to use this as a regular function (as opposed to as middleware) just pass in a fourth parameter, regularFunctionFlag, which can be anything
+
+**arguments**
+ * @param {anything} regularFunctionFlag - indicates the function is not running as middleware
+
+**example**
+```javascript
+app.get('/a/path', system.recordUrlHistory, function(req, res){
+  
+});
+```
+
+#### redirectBack
+Redirect user to a url in their previous history
+
+**arguments**
+ * @param {number} steps - number of steps to go back in history (0 means current page)
+ * @param {object} req - current request object
+ * @param {object} res - current response object
+
+**example**
+```javascript
+  system.redirectBack(1, req, res);  // returns the user one page back in their history
+```
+
+#### recordUrlAlias
+Create and record URL aliases
+
+Each content object can be accessed by two urls.  One Url is a perma-link (it never changes) and the other is an alias (which can be changed or modified).  This API call ensures the chosen Url alias is unique (to prevent inadvertent collisions).
+
+This API is called automatically whenever any content object is saved.  Normally, it should not be necessary to access this API directly.  It is only included in the documentation for completeness.
+
+**arguments**
+ * @param {array} resource - the array of resources for which the URL alias is being created.  Each element can be a Content object or any other object with the following parameters - url: proposed url alias.  
+
+ This may be modified to ensure uniqueness.  For Content objects, the format should be 'contenttype/alias' where alias must be a string and not a number
+
+**example**
+```javascript
+var newContent = new content.Story();  // create a new story instance
+newContent.url = '/my/hopefully/unique/url';
+
+system.recordUrlAlias([newContent], function(err){
+  
+});
+```
+
+#### getContentFromAlias
+Get the content url and id associated with an alias.
+
+This API is used in retrieving the appropriate content for routes accessed via the content alias.
+
+For example, GET 'story/jack-and-jill' -> GET '/story/15'
+
+**arguments**
+ * @param {string} alias - alias to be translated into the associated content id and url
+
+**example**
+```javascript
+app.get('/content/:alias', function(req, res){
+  var contentDetails = system.getContentFromAlias(req.params.alias); // {id: 6, url: '/content/jack-and-jill'}
+});
+```
+
+#### runCron
+Execute cron tasks
+
+**arguments**
+ * @param {obj} req - express request object
+ * @param {obj} res - express response object
+
+**example**
+```javascript
+system.runCron(req, res, callback);
+```
+
+
+#### addCronTask
+Add tasks to cron
+
+NOTE: task names are unique.  To prevent accidentally clobbering an existing task, prefix cron task names with the name of your app module e.g. 'mycoolapp send email newsletter'.
+
+Cron is maintained in two separate places in systemVariable; cronTask and config.cronRecord.  
+
+cronTask is formatted as {'task name': task function}.  This information is not persisted in the database and is reset each time the application is restarted
+
+cronRecord is formatted as {task name: {freq: frequency, lastrun: time last run}}.  This information is stored in the database and is retrieved each time the app is started
+
+Obviously cronTask and cronRecord must be kept in sync.  This is done by functions addCronTask and deleteCronTask
+
+**arguments** 
+ * @param {string} taskName - unique name to identify task. use human recognizable name e.g. 'nightly backup'
+ * @param {function} task - task to be run.
+   *     - pass as 'null' if just updating the frequency
+   *     - task will be run as task.bind(null, req, res)(callback)
+   *     - task needs to return callback(null, {err: <any error>, key1: <string>, key2: <string>})
+   *     - err should contain error objects
+   *     - if no err, then there must be at least one key/value pair returned e.g. {'newsletter': 'sent succesfully'}
+* @param {string / integer} freq - frequency at which the task needs to be run.  specified in minutes (also accepts
+   'hourly', 'daily', 'weekly')
+
+**example**
+```javascript
+function longRunningProcess(callback){
+  // do stuff
+  return callback(null, {err: errorValue, result: resultValue});
+}
+
+/* this needs to run each time the app starts or restarts
+    usually a good idea to run this right after bootstrap.initialize
+*/
+system.addCronTask('myapp_cronLongRunningProcess', longRunningProcess, 'daily', callback);
+
+```
+
+#### deleteCronTask
+Remove cron task
+
+**arguments**
+ * @param {string} taskName - name of cron task to be removed
+
+**example**
+```javascript
+var removeFunction = 'myapp_cronLongRunningProcess';
+system.removeCronTask(removeFunction, callback); // myapp_cronLongRunningProcess will no longer be executed on cron 
+```
+
+#### backupDatabase
+Backup database.  The backup is either sent to an email address or stored in a directory on the server, depending on the system settings
+
+**arguments**
+ * @param {object} req - express request object
+ * @param {object} res - express response object
+
+**example**
+```javascript
+system.backupDatabase(req, res, callback);
+```
+
+#### prepGetRequest
+Prepare pageInfo object (pageInfo object contains rendering information for the page being prepared for display) for use in GET responses and performs a bunch of useful tasks common to all GETs
+
+NOTE: Because this function moves the system messages from req.session.msgCache to res.locals.sysmessage, if there is a need to redirect afterwards, system messages NEED to be moved back to req.session.msgCache otherwise they will be lost as res.redirect creates a new res object.  Use restoreSystemMessage to preserve the system messages in this situation.
+
+**arguments**
+ * @param {object} option - custom information for this particular request.  is in the form {info:<info_option>, action:<action_option>}
+ * @param {object} req - express request object
+ * @param {object} res - express response object
+
+**example**
+```javascript
+var pageTitle = 'Help page';
+var options = {
+  info: {
+    title: 'Help page',  // sets the page title
+    action: []  // can include any functions to automatically run
+  }
+};
+system.prepGetRequest(options, req, res, callback);
+```
+
+#### logger
+Define system logging.  Records system logs and generates reports
+
+**arguments**
+ * @params {string} level - type of log level ('info', 'warn', 'error')
+  *   info - regular site operations e.g. GET requests successfully satisfied
+  *   warn - irregular activity e.g. 404 error, login failure
+  *   error - system error e.g. database read error, 
+ * @params {object} record - log object
+  *   format: logObject = {req: <express req object>, category: <log category e.g. "user" or "cron">, message: <descriptive message>), 
+  *           if logging an error, format is logObject = {error: <error object>, message: <description>}
+ * @params {string/int} period (optional) - period for which the log report will cover 
+  *   format: (integer representing age in hours or string options 'hourly', 'daily', 'weekly', 'monthly')
+  *           if ommitted, period will use the systemvariable value of 'reportFreq'
+
+**example**
+```javascript
+
+// record log event
+var level = 'info';
+var record = {
+  req: req,
+  message: 'user login successful',
+  category: 'user',
+  time: 'Tue Aug 26 2014 16:32:49 GMT-0700 (PDT)'
+}
+
+logger.record(level, record);
+
+// generate log report
+var period = 'daily';  // generate report for the previous 24 hours
+logger.report(req, res, period, callback);  // log report is generated and sent to the destination assigned in the system settings
+
+```
+
+#### validateForm
+Form validation.  This API makes various back-end checks on Handyjs forms to ensure the user input provided is suitable (e.g. required fields are provided, password confirmation fields match password field, emails are properly formatted, maximum string lengths are enforced, etc).
+
+The function can be extended to provide custom validations
+
+**argumuments**
+ * @param {string} formType - type of form being validated e.g. userLogin, passReset, etc.  
+  * Can also be a callback function to execute custom validation
+ * @param {req} Express request object
+ * @param {res} Express response object
+ * @param {next} Express next object
+
+**example**
+```javascript
+ 
+app.post('/form/action', system.validateForm('userRegister'), function(req, res){
+  
+});
+
+// to perform a custom validation
+function customValidation(req, res){
+  // validation stuff
+}
+
+app.post('/form/action', system.validateForm(customValidation), function(Req, res){
+  
+});
+```
+---
 
 ### User
 All User API calls are prefixed by handy.user i.e. to access user API "doStuff", call handy.user.doStuff
@@ -710,9 +1273,11 @@ Access control settings are maintained in the Redis database, however, it is pos
 none
 
 **example**
+```javascript
 aclReset(function(err){
   
 });
+```
 
 #### initializePermissionGrants
 Initialize permission grants to various roles and updates the Redis database.
@@ -746,6 +1311,7 @@ handy.user.postUserVerificationProcessing(uidList, function(err){
   
 });
 ```
+---
 
 ### Content
 All Content API calls are prefixed by handy.content i.e. to access content API "doStuff", call handy.content.doStuff
@@ -998,21 +1564,229 @@ Story is one of the two content types that ships with Handyjs.  It has only the 
 ### Comment
 Comment is one of the two content types that ships with Handyjs.  It has only the default methods and properties of Content types.
 
+---
 
 ### Utility
+All Utility API calls are prefixed by handy.utility i.e. to access utility API "doStuff", call handy.utility.doStuff
+
+The Utility API consists of "helper" functionality for the other Handyjs modules.  Basically, if there is some functionality that is required repeatedly by other modules, it will live in the Utility module.
+
+#### subClass
+subClass is used to manage prototypical inheritance of objects.  Central to the architecture of Handyjs is a set of objects inheriting methods and properties from each other.  subClass converts an object into a Child class of another Parent object.
+
+**Handyjs Object Inheritance Model**
+```
+BaseObject
+  |
+  -- User
+  |
+  -- Content
+  |   |
+  |   -- Story
+  |  |
+  |  -- Comment
+  |
+  -- Category
+
+```
+**arguments**
+* @param {object} parent - parent class
+* @param {object} child - child class
+
+**example**
+```javascript
+function Child(){
+  var param1 = {key: val};
+  var param2 = {key: val};
+  Parent.call(this, param1, param2); // set up object using the methods and properties of Parent
+}
+
+utility.subClass(Parent, Child);  // Child now inherits the methods and properties of Parent but has its own constructor
+```
+
+### populateNewObject
+populateNewObject is used to populate attributes of new object instances by iterating over an initializing object which contains all the attributes i.e. send in an object like {key1: val1, key2: val2} and the created object instance will have this.key1 = val1 and this.key2 = val2
+
+**arguments**
+* @param {object} initObject - initializing object
+
+**example**
+```javascript
+function emptyObject(initializer){
+  utility.populateNewObject.call(this, initializer);  // set up the properties of this object based on the values in initializer
+}
+```
+
+### removeLastCharacter
+Remove last occurence of a character from a string.  Particularly useful to remove trailing comma from strings generated in loops e.g. "string1, string2, string3,"
+
+**arguments**
+* @param {string} char - character or string to be removed
+* @param {string} string - string to be modified
+
+**example**
+```javascript
+var modString = 'Andy + Bob + Candy + Dan +';
+var finalString = utility.removeLastCharacter(' +', modString); // 'Andy + Bob + Candy + Dan'
+```
+
+### escapeRegExp
+Escape string characters to be used as literal string within a regular expression
+
+**arguments**
+* @param {string} string - string to be escaped
+
+**example**
+```javascript
+var message = '[user name] needs to do a bunch of stuff.  [user name] should do it now';
+var re = new RegExp(utility.escapeRegExp('[user name]'), 'g');
+var userName = 'Dan';
+var newMessage = message.replace(re, userName);
+```
+
+### checkUniqueRecord
+Check if a record in a database table is unique e.g. check to see if there is more than one user with the same email address 
+
+**arguments**
+ * @param {object} recordToTest - record being checked for uniqueness.  format {column: columnname, value: recordvalue}
+ * @param {object} expectedRecord - (optional) an existing record in the database which can be ignored.  if null, it is assumed there should be no occurences of the record in the table
+ * @param {string} table - table in which to search for uniqueness
+
+**returns** 
+format callback(err, uniqueFlag) where uniqueFlag is true if the recordToTest is unique and false otherwise
+
+**example**
+```javascript
+var recordToTest = {
+  column: 'email',
+  value: 'bob@gmail.com'
+};
+
+// we expect to find a record for bob@gmail.com with an id of 6 so ignore this record if found
+var expectedRecord = {
+  column: 'id',
+  value: 6
+};
+
+utility.checkUniqueRecord(recordToTest, expectedRecord, 'user', function(err, uniqueFlag){
+  console.log(uniqueFlag);  // 'true' if there is no other record in 'user' table other than the expected one (false otherwise)
+});
+```
+
+### isArrayEqual
+Check if two arrays are equal to each other.
+
+For some reason javascript does not return true for ['a'] === ['a'] so this function returns true if both arrays are the same, false otherwise
+
+**arguments**
+ * @param {array} array1 - first array to be used for comparison
+ * @param {array} array2 - second array to be used for comparison
+ * @param {string} keymatch - set to true if the array keys need to match as well i.e. ['a', 'b'] !== ['b', 'a'], default true
+
+**example**
+```javascript
+var array1 = ['a', '1', '3'];
+var array2 = ['b', '2', '4'];
+var array3 = ['1', '3', 'a'];
+var array4 = ['a', '1', '3'];
+
+utility.isArrayEqual(array1, array2);  // false
+utility.isArrayEqual(array1, array4);  // true
+utility.isArrayEqual(array1, array3);  // false
+utility.isArrayEqual(array1, array3, false);  // true
+
+```
+
+### convertCase
+Convert all string elements of an array or object to lower/upper case
+
+**arguments**
+ * @param {string/array/object} target - array to be converted
+ * @param {string} reqCase - case conversion required
+ * @param {bool} - keyConvert - if true and target is an object, all keys will be case converted as well
+
+**example**
+```javascript
+var upperCaseString = 'ABCDEF';
+var upperCaseArray = ['A', 'B', 'C', 'D', 'E', 'F'];
+var lowerCaseObject = {a: 'apple', b: 'ball'};
+
+utility.convertCase(upperCaseString, 'tolowercase');  // 'abcdef'
+utility.convertCase(upperCaseArray, 'tolowercase');  // ['a', 'b', 'c', 'd', 'e', 'f']
+utility.convertCase(lowerCaseObject, 'touppercase');  // {a: 'APPLE', b: 'BALL'}
+utility.convertCase(lowerCaseObject, 'touppercase', true); {A: 'APPLE', B: 'BALL'}
+```
+
+### inspect
+Expand objects for display with console.log
+
+Ordinarily console.log({a:{b}}) shows up as {a{object}} and does not give the details of {b}.  This function explodes all objects within other objects
+
+ **arguments**
+ * @param {object} toScreen - desired output to console.log
+
+**example**
+```javascript
+var nestedObject = {a: {b: c: 3}};
+consolelog(nestedObject);  // {a: [Object]}
+console.log(utility.inspect(nestedObject));  
+// displays
+    {a:
+      {b:
+        {c: 3}
+      }
+    }
+```
+
+### caseBlindKeyMatch
+Perform a case blind key match of an object
+
+i.e. for object {Aa: 'one'}, key match search by 'Aa', 'aa' or 'aA' should return 'one'
+
+**arguments**
+ * @param {object} target - target object being searched
+ * @param {string} needle - key to be matched
+
+**example**
+```javascript
+var target = {Name: 'John'};
+var needle = 'name';
+var result;
+result = target[needle]; // undefined
+result = utility.caseBlindKeyMatch(target, needle);  // 'John'
+```
+
+---
 
 ## How Handyjs Works <a name='handy-works'></a>
+This documentation section is designed to provide some background on the behind the scenes working of Handyjs so there is some context to the APIs.  It is not required reading in order to get up and started building apps on Handyjs.
+
 
 ### Bootstrap process
+When starting an app built on Handyjs, the first function to execute should be the bootstrap initialization process
+
+```javascript
+handy.bootstrap.initialize()
+```
+(see [getting started](#getting-started) for an example).  The initialization process tries to read the configuration file (/handy/config/handy-config.js) in order to get the basic site and database configuration information.  If the configuration file is missing, initialization stops and the user is prompted to perform installation before continuing.
+
+The configuration file provides the access credentials for the database.  Next, the initialization process sets up the database tables.  If the site configuration exists (this is different than the configuration file, this is a much more extensive collection of configuration settings and is stored in the database not a flat file), Handyjs loads this into memory.
+
+After this, Handyjs creates all the Objects that are the parents for the other objects used in Handyjs (e.g. User, Content, etc).  The access control permissions system is started and permissions are granted to various defined roles.  The cron task management system starts up to manage tasks assigned to be executed periodically and finally the system logging is started.
+
+If any of these systems fails, Handyjs assumes the installation has not yet occurred and prompts the user to perform the installation procedure.
 
 ### Account registration <a name="account-registration-link"></a>
 
 
+---
 
 ## License <a name='license'></a>
 Handyjs is freely available under the [AGPL License](link to AGPL license).
 Unencumbered, commercial licenses are available at [Handyjs.org](http://www.handyjs.org/license)
 
+---
+
 ## Credits <a name='credits'></a>
 Handyjs was created by Tolu Akinola
-Copyright StreamThing LLCￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ쿏ￏ
+Copyright StreamThing LLC
