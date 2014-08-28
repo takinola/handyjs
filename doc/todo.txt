@@ -3,6 +3,7 @@ CODEPOINT
 TO-DO
 
 General
+  - Note:  Both the encoded and unencoded versions of a content url resolve properly i.e. "/content/will&unencoded=url>work?" and "%2Fcontent%2Fwill%26unencoded%3Durl" both resolve properly.  This is because when you request "/content/:id", express will decodeUriComponent(id) before making it available in req.params.  However, "id" is already a result of encodeURIComponent(), meaning in every case id === decodeURIComponent(id).  Hence, both the encoded and un-encoded versions of the url will work.  Not sure what the work around is, not sure if a work around is needed.
   - Personalized welcome email - send a personalized email to users upon signup (introduce founder and ask for help).  Basically, a cron job that checks new user accounts since last run and sends them the email.
   - Modify menu.sh to first see if there have been any changes on handy.js before pushing code to remote repository
   - Test restore of backup
