@@ -408,7 +408,7 @@ describe('System.js test suite', function(){
     var req = {};
     req.session = {user: user};
     req.protocol = 'https';
-    req.host = 'test.com';
+    req.hostname = 'test.com';
     req.url = 'test/path.htm';
     
     var siteName = 'Test Site';
@@ -425,7 +425,7 @@ describe('System.js test suite', function(){
       },
       {
         token: '[current-page:url]',
-        expected: req.protocol + '://' + req.host + '/' + req.url
+        expected: req.protocol + '://' + req.hostname + '/' + req.url
       },
       {
         token: '[current-page:url:path]',
@@ -445,15 +445,15 @@ describe('System.js test suite', function(){
       },
       {
         token: '[user:one-time-login-url]',
-        expected: req.protocol + '://' + req.host + '/onetimelogin?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
+        expected: req.protocol + '://' + req.hostname + '/onetimelogin?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
       },
       {
         token: '[user:cancel-url]',
-        expected: req.protocol + '://' + req.host + '/accountcancel?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
+        expected: req.protocol + '://' + req.hostname + '/accountcancel?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
       },
       {
         token: '[user:one-time-email-verification-url]',
-        expected: req.protocol + '://' + req.host + '/verifyemail?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
+        expected: req.protocol + '://' + req.hostname + '/verifyemail?email=' + encodeURIComponent(user.email) + '&link=' + encodeURIComponent(user.onetimelink)
       },
       {
         token: '[site:name]',
@@ -461,11 +461,11 @@ describe('System.js test suite', function(){
       },
       {
         token: '[site:url]',
-        expected: req.protocol + '://' + req.host
+        expected: req.protocol + '://' + req.hostname
       },
       {
         token: '[site:login-url]',
-        expected: req.protocol + '://' + req.host + '/login'
+        expected: req.protocol + '://' + req.hostname + '/login'
       },
     ];
     

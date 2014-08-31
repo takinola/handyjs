@@ -200,7 +200,7 @@ app.use(function(err, req, res, next){
         title: 'Access denied',
         config: handy.system.systemVariable.get('config'),
         user: req.session.user || {},
-        siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query, url: req.url},
+        siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query, url: req.url},
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };
@@ -217,7 +217,7 @@ app.use(function(err, req, res, next){
         title: 'Internal errors',
         config: handy.system.systemVariable.get('config'),
         user: req.session.user || {},
-        siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query, url: req.url},
+        siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query, url: req.url},
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };
@@ -234,7 +234,7 @@ app.use(function(err, req, res, next){
         title: 'Internal errors',
         config: handy.system.systemVariable.get('config'),
         user: req.session.user || {},
-        siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query, url: req.url},
+        siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query, url: req.url},
         googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
         other: {}
       };

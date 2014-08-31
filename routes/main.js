@@ -62,7 +62,7 @@ module.exports = function(app){
     var pageInfo = {
       title: 'Handy Installation Guide',
       user: req.session.user || {},
-      siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query, url: req.url},
+      siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query, url: req.url},
       other: {}
     };
 
@@ -277,7 +277,7 @@ module.exports = function(app){
     var sitemapConfig = handy.system.systemVariable.getConfig('sitemapConfig');
     
     // get base url
-    var baseUrl = req.protocol + '://' + req.host;
+    var baseUrl = req.protocol + '://' + req.hostname;
     
     var xml = '<?xml version="1.0" encoding="UTF-8"?>';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
@@ -354,7 +354,7 @@ module.exports = function(app){
       title: null,
       config: handy.system.systemVariable.get('config'),
       user: req.session.user || {},
-      siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query},
+      siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
       googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
@@ -597,7 +597,7 @@ module.exports = function(app){
 
         pageInfo.title = _.escape(story.title).substr(0, 40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
         pageInfo.description = _.escape(story.title) + '. ' + _.escape(story.body.substr(0,130));
-        pageInfo.canonical = req.protocol + '://' + req.host + story.url;
+        pageInfo.canonical = req.protocol + '://' + req.hostname + story.url;
         pageInfo.other.storyValue = {};
         pageInfo.other.storyValue.title = _.escape(story.title);
         pageInfo.other.storyValue.link = story.link;
@@ -803,7 +803,7 @@ module.exports = function(app){
 
         pageInfo.title = ('comment: '+ _.escape(comment.title) + ' - ' + _.escape(comment.body)).substr(0,40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
         pageInfo.description = _.escape(comment.title) + '. ' + _.escape(comment.body.substr(0,130));
-        pageInfo.canonical = req.protocol + '://' + req.host + comment.url;
+        pageInfo.canonical = req.protocol + '://' + req.hostname + comment.url;
         pageInfo.other.commentValue = {};
         pageInfo.other.commentValue.title = _.escape(comment.title);
         pageInfo.other.commentValue.link = comment.link;
@@ -1155,7 +1155,7 @@ module.exports = function(app){
       title: null,
       config: handy.system.systemVariable.get('config'),
       user: req.session.user || {},
-      siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query},
+      siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
       googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
@@ -1240,7 +1240,7 @@ module.exports = function(app){
       title: null,
       config: systemVariable.get('config'),
       user: req.session.user || {},
-      siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query},
+      siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
       googleAnalyticsCode: systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
@@ -1322,7 +1322,7 @@ module.exports = function(app){
       title: null,
       config: systemVariable.get('config'),
       user: req.session.user || {},
-      siteinfo: {protocol: req.protocol, host: req.host, path: req.path, query: req.query},
+      siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
       googleAnalyticsCode: systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
