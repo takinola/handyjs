@@ -292,7 +292,7 @@ Set up a MySQl database and user by running the following commands
 ```mysql
 CREATE DATABASE <databasename>;
 CREATE USER '<user>'@localhost IDENTIFIED BY '<password>';
-GRANT ALL PRIVILEGES on <databasename> TO '<user>'@localhost;
+GRANT ALL PRIVILEGES on <databasename>.* TO '<user>'@localhost;
 FLUSH PRIVILEGES;
 ```
 
