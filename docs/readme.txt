@@ -1,6 +1,6 @@
 Handy.js
 Revision date: 10/06/2013
-
+ 
 Introduction
 Handy.js is a CMS based on the Node.js framework.  The design philosophy for Handy.js is simplicity, speed and extensibility.  This means the user with basic technical skills should be able to get up and running very quickly while a more advanced user should be able to extend the functionality and features very easily.
 
