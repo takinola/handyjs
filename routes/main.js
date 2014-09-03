@@ -601,7 +601,8 @@ module.exports = function(app){
         pageInfo.other.storyValue = {};
         pageInfo.other.storyValue.title = _.escape(story.title);
         pageInfo.other.storyValue.link = story.link;
-        pageInfo.other.storyValue.body = _.escape(story.body).replace(/\r?\n/g, '<br/>');
+        //pageInfo.other.storyValue.body = _.escape(story.body).replace(/\r?\n/g, '<br/>');
+        pageInfo.other.storyValue.body = story.body.replace(/\r?\n/g, '<br/>');
         pageInfo.other.storyValue.contentlist = story.contentlist;
       
         // check if story is published or deleted

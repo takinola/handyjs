@@ -161,3 +161,11 @@ div.footer_bottom{
   border-color: #ddd #ddd #ddd transparent;
   *border-left-color: #ffffff;
 }
+
+/* edit and delete links next to content */
+span.editlink {
+  float: right;
+  font-size: 0.4em;
+  font-weight: 150;
+  color: #3498db;
+}

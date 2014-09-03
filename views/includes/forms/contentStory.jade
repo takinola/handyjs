@@ -26,7 +26,7 @@ form.form-horizontal(name='contentStory', id='contentStory', action='/content/st
     label.control-label.col-xs-2(for='body') Body
     .col-xs-9
       textarea.form-control(rows=15, id='body', name='body', disabled=disabled, required) #{bodyValue}
-      span.help-block All HTML tags are filtered before display
+      span.help-block Caution: HTML tags are not filtered before display
   
   .form-group
     label.control-label.col-xs-2(for='url') Url
