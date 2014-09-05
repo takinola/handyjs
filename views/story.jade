@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  .container-fluid.spacer.fill-screen-height
+  #story_content.container-fluid.spacer.fill-screen-height
 
     mixin displayEditLink(flag)
       if flag
@@ -41,3 +41,8 @@ block content
           blockquote
             p!= comment.text
             footer= comment.creator
+
+if pageInfo.other.includeExtras
+  - var path = pageInfo.other.extrasPath
+  block extras
+    include ../../views/includes/blocks/story_extras.jade

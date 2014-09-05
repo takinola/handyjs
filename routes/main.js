@@ -3,6 +3,8 @@
  */
 
 var _ = require('underscore')
+  , fs = require('fs')
+  , path = require('path')
   , async = require('async')
   , handy = require('../../handy/lib/handy').get('handy')
   , url = require('url')
@@ -601,7 +603,6 @@ module.exports = function(app){
         pageInfo.other.storyValue = {};
         pageInfo.other.storyValue.title = _.escape(story.title);
         pageInfo.other.storyValue.link = story.link;
-        //pageInfo.other.storyValue.body = _.escape(story.body).replace(/\r?\n/g, '<br/>');
         pageInfo.other.storyValue.body = story.body.replace(/\r?\n/g, '<br/>');
         pageInfo.other.storyValue.contentlist = story.contentlist;
       
@@ -635,6 +636,26 @@ module.exports = function(app){
             } else {
               pageInfo.other.displayEditLink = true;
             }
+
+            /*
+             * check if the project wants to inject a script or additional file into the "extras" block
+             */
+            
+            var handyDirectory = handy.utility.findHandyDirectory();  // get the folder location of the handy folder
+            // find path to includes folder of the project
+            var directoryArray = handyDirectory.split('/');
+            directoryArray.pop();
+            var projectDirectory = directoryArray.reduce(function(prev, curr){
+              return prev + '/' + curr;
+            },'');
+            var includesDirectory = path.join(projectDirectory, 'views/includes/blocks');
+            var extrasPath = path.join(includesDirectory, 'story_extras.jade');
+            // check if story_extras.jade file exists in the project includes folder
+            if(fs.existsSync(extrasPath)){
+              pageInfo.other.includeExtras = true;
+              pageInfo.other.extrasPath = extrasPath;
+            };
+
             res.render('story', {pageInfo: pageInfo});
             handy.system.logger.record('info', {req: req, category: 'content', message: 'story displayed. id: ' + story.id});
             story = null; // free up memory
