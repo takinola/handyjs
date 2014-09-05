@@ -28,18 +28,14 @@ module.exports = function(app){
    *************************************************************************************************/
   
   // test page: for running various experiments - Tested
-  app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res){
+  app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), handy.utility.forceError, function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
       action: []
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      handy.system.logger.report(req, res, function(nullValue, returnObject){
-        //console.log('error: ' + returnObject.err);
-        //console.log('activity report: ' + returnObject['activity report']);
-        res.render('testpage', {pageInfo: pageInfo});
-      });
+      res.render('testpage', {pageInfo: pageInfo});
     });
   });
   
