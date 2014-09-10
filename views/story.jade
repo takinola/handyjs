@@ -41,8 +41,3 @@ block content
           blockquote
             p!= comment.text
             footer= comment.creator
-
-if pageInfo.other.includeExtras
-  - var path = pageInfo.other.extrasPath
-  block extras
-    include ../../views/includes/blocks/story_extras.jade

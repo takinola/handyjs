@@ -169,3 +169,19 @@ span.editlink {
   font-weight: 150;
   color: #3498db;
 }
+
+/* styling for story content */
+p.story-lead {
+  font-size: 1.1875em;
+  line-height: 1.5789;
+  font-weight: 400;
+  font-style: normal;
+  color: #333;
+  margin-bottom: 20px;
+  font-family: "Myriad Set Pro","Lucida Grande","Helvetica Neue","Helvetica","Arial","Verdana","sans-serif";
+}
+
+p.story-lead strong {
+  color: #000;
+  font-weight: 600;
+}

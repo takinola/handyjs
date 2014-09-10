@@ -3,8 +3,6 @@
  */
 
 var _ = require('underscore')
-  , fs = require('fs')
-  , path = require('path')
   , async = require('async')
   , handy = require('../../handy/lib/handy').get('handy')
   , url = require('url')
@@ -28,13 +26,17 @@ module.exports = function(app){
    *************************************************************************************************/
   
   // test page: for running various experiments - Tested
-  app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), handy.utility.forceError, function(req, res){
+  app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res, next){
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
       action: []
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
+      var err = new Error('testing');
+      err.status = 403;
+      next(err);
+      return;
       res.render('testpage', {pageInfo: pageInfo});
     });
   });
@@ -599,14 +601,14 @@ module.exports = function(app){
         pageInfo.other.storyValue = {};
         pageInfo.other.storyValue.title = _.escape(story.title);
         pageInfo.other.storyValue.link = story.link;
-        pageInfo.other.storyValue.body = story.body.replace(/\r?\n/g, '<br/>');
+        pageInfo.other.storyValue.body = story.body;
         pageInfo.other.storyValue.contentlist = story.contentlist;
       
         // check if story is published or deleted
         !story.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
         story.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
         if(!story.published || story.deleted){
-          handy.system.redirectBack(0, req, res);
+          handy.system.redirectBack(1, req, res);
           story = null;
           handy.system.logger.record('warn', {req: req, category: 'content', message: 'story not displayed because not published or deleted. id: ' + urlId});
           return;
@@ -632,25 +634,6 @@ module.exports = function(app){
             } else {
               pageInfo.other.displayEditLink = true;
             }
-
-            /*
-             * check if the project wants to inject a script or additional file into the "extras" block
-             */
-            
-            var handyDirectory = handy.utility.findHandyDirectory();  // get the folder location of the handy folder
-            // find path to includes folder of the project
-            var directoryArray = handyDirectory.split('/');
-            directoryArray.pop();
-            var projectDirectory = directoryArray.reduce(function(prev, curr){
-              return prev + '/' + curr;
-            },'');
-            var includesDirectory = path.join(projectDirectory, 'views/includes/blocks');
-            var extrasPath = path.join(includesDirectory, 'story_extras.jade');
-            // check if story_extras.jade file exists in the project includes folder
-            if(fs.existsSync(extrasPath)){
-              pageInfo.other.includeExtras = true;
-              pageInfo.other.extrasPath = extrasPath;
-            };
 
             res.render('story', {pageInfo: pageInfo});
             handy.system.logger.record('info', {req: req, category: 'content', message: 'story displayed. id: ' + story.id});
