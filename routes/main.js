@@ -33,11 +33,11 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      var err = new Error('testing');
-      err.status = 403;
-      next(err);
-      return;
-      res.render('testpage', {pageInfo: pageInfo});
+      handy.content.submitXmlSitemap(req, res, function(nullVar, messageObject){
+        //console.log('sitemap submission processing ended...\nmessage: ', handy.utility.inspect(messageObject));
+        res.render('testpage', {pageInfo: pageInfo});
+      });
+      
     });
   });
   
@@ -125,6 +125,7 @@ module.exports = function(app){
         }
       
         pageInfo.other = results;
+        pageInfo.other.sitemapSubmit = handy.system.systemVariable.getConfig('sitemapSubmit');
         pageInfo.other.cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
         res.render('configuration', {pageInfo: pageInfo});
         handy.system.logger.record('info', {req: req, category: 'system', message: 'display configuration page'});
@@ -307,7 +308,7 @@ module.exports = function(app){
 
     res.header('Content-Type', 'text/xml');
     res.send(xml);
-    handy.system.logger.record('info', {req: req, category: 'sitemap', message: 'sitemap submitted successfully'});
+    //handy.system.logger.record('info', {req: req, category: 'sitemap', message: 'sitemap submitted successfully'});
   });
   
   // contact form

@@ -28,21 +28,35 @@ mixin freqAndPriority(setting, contentType)
   form(name='sitemapSetting', id='sitemapSetting', action='/sitemapsetting', method='post', role='form')
     include ../components/csrf.jade
     .form-group
-      table.table.table-condensed
-        thead
-          tr
-            th
-            th Frequency
-            th Priority
-        tbody
-          each setting, contentType in pageInfo.other.sitemapSettings.content
-            tr  
-              td #{contentType}
-              +freqAndPriority(setting, contentType)
-      
-          tr
-            td Default settings
-            +freqAndPriority({}, 'default')
+      label(for="sitemapSubmit") Sitemap submission settings
+        .checkbox
+          label
+            //-check if checkbox should be checked or not
+            if pageInfo.other.sitemapSubmit
+              input#sitemapSubmit(type="checkbox", name="sitemapSubmit", value="true", checked)
+            else
+              input#sitemapSubmit(type="checkbox", name="sitemapSubmit", value="true")
+            p Submit sitemap to search engines
+
+    .spacer
+      .form-group
+        label Sitemap submission frequency
+        table.table.table-condensed
+          thead
+            tr
+              th
+              th Frequency
+              th Priority
+          tbody
+            each setting, contentType in pageInfo.other.sitemapSettings.content
+              tr  
+                td #{contentType}
+                +freqAndPriority(setting, contentType)
+        
+            tr
+              td Default settings
+              +freqAndPriority({}, 'default')
+
     | &nbsp&nbsp;
     .form-group
       button.btn.btn-primary(type='submit') Save sitemap settings
