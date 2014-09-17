@@ -1,7 +1,7 @@
 - if (!pageInfo.config.siteName)
     siteName = 'Brand new handy.js site'
 
-nav.navbar.navbar-default.navbar-static-top(role='navigation')
+nav.navbar.navbar-custom.navbar-static-top(role='navigation')
   // Brand and Toggle are grouped for better mobile display
   .container-fluid
     .navbar-header
@@ -12,16 +12,18 @@ nav.navbar.navbar-default.navbar-static-top(role='navigation')
         span.icon-bar
         
       a.navbar-brand(href='/') #{pageInfo.config.siteName}
-
-    // other links in navbar
-    .collapse.navbar-collapse#navbar-collapse
+      
+    .collapse.navbar-collapse(id='login-logout')
       ul.nav.navbar-nav.navbar-right
+        li
+          a(href='/') Tips
+        li
+          a(href='/qanda') Q+A
         li
           a(href='/blog') Blog
         li
-          a(href='/demo') Demo
-        li
-          a(href='/download') Download
-        li
-          a(href='/documentation') Documentation
+          if (pageInfo.user.authenticated === true)  
+            a(href='/logout') Logout
+          else
+            a(href='/login') Login
 
