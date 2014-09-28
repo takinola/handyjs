@@ -1,23 +1,21 @@
 form(name='contact', id='contact', method='post', action='/contact', role='form')
   include ../components/csrf
   
-  .row
-    .col-md-offset-1.col-md-6
-      .page-header
-        h2 We would love to hear from you
+    .page-header
+      h2 We would love to hear from you
+
+    .form-group
+      label.control-label(for='contact_name') Your name
+      input.form-control(type='text', placeholder='e.g. Jane Doe', id='contact_name', name='contact_name')
+      p.help-block optional
+
+    .form-group
+      label.control-label(for='contact_email') Your email
+      input.form-control(type='email', placeholder='e.g. jane@gmail.com', id='contact_email', name='contact_email', required)
+      p.help-block required
+
+    .form-group
+      label.control-label(for='contact_message') Message
+      textarea.form-control(id='contact_message', name='contact_message', rows='7', required)
     
-      .form-group
-        label.control-label(for='contact_name') Your name
-        input.form-control(type='text', placeholder='e.g. Jane Doe', id='contact_name', name='contact_name')
-        p.help-block optional
-    
-      .form-group
-        label.control-label(for='contact_email') Your email
-        input.form-control(type='email', placeholder='e.g. jane@gmail.com', id='contact_email', name='contact_email', required)
-        p.help-block required
-    
-      .form-group
-        label.control-label(for='contact_message') Message
-        textarea.form-control(id='contact_message', name='contact_message', rows='7', required)
-      
-      button.btn.btn-primary(type='submit') Send message
+    button.btn.btn-primary(type='submit') Send message

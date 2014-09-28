@@ -2,7 +2,7 @@ form.form-horizontal(id='siteInstall', name='siteInstall', action='/siteinstall'
   include ../components/csrf.jade
 
   .row
-    .col-xs-11
+    .col-xs-12
       h4 Site information 
         small &nbsp; Basic site identification details
       .well
@@ -18,7 +18,7 @@ form.form-horizontal(id='siteInstall', name='siteInstall', action='/siteinstall'
             span.help-block Automated emails, such as registration information, will be sent from this address.  It is usually a good idea to use an address ending in your site's domain to prevent your emails from being flagged as spam. 
 
   .row
-    .col-xs-11
+    .col-xs-12
       h4 Database configuration 
         small &nbsp; Database access information
       .well
@@ -36,7 +36,7 @@ form.form-horizontal(id='siteInstall', name='siteInstall', action='/siteinstall'
             input.form-control(type='password', id='dbPassword', name='dbPassword', placeholder='Database password', required)    
 
   .row
-    .col-xs-11
+    .col-xs-12
       h4 Site administrator 
         small &nbsp; Site admin account setup
       .well

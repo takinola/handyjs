@@ -171,7 +171,7 @@ form.form-horizontal(name='configAccount', id='configAccount', action='/configac
             span.help-block Message sent to members when they request account cancellation
             br
             .form-group
-              .col-md-8
+              .col-md-7
                 label.control-label(for="account_cancel_request_subject") Subject
                 input.form-control(type="text", name="account_cancel_request_subject", id="account_cancel_request_subject", value=pageInfo.config.account_cancel_request_subject, required)
                 br
@@ -213,5 +213,5 @@ form.form-horizontal(name='configAccount', id='configAccount', action='/configac
             
 
   .form-group
-    .col-md-offset-2.col-md-8
+    .col-md-offset-1.col-md-8
       button.btn.btn-primary(type='submit') Save configuration 

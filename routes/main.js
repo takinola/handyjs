@@ -25,7 +25,7 @@ module.exports = function(app){
    **************************************************************************************************
    *************************************************************************************************/
   
-  // test page: for running various experiments - Tested
+  // test page: for running various experiments
   app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res, next){
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
@@ -33,10 +33,18 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      handy.content.submitXmlSitemap(req, res, function(nullVar, messageObject){
-        //console.log('sitemap submission processing ended...\nmessage: ', handy.utility.inspect(messageObject));
-        res.render('testpage', {pageInfo: pageInfo});
+      handy.system.logger.report(req, res, function(nullVar, result){
+        console.log('report: \n', handy.utility.inspect(result));
+        var logDetail = {type: 'info', category: 'system', message: 'display test page'};
+        handy.system.display(req, res, 'testpage', pageInfo, logDetail);
       });
+      return;
+
+      handy.content.submitXmlSitemap(req, res, function(nullVar, messageObject){
+        var logDetail = {type: 'info', category: 'system', message: 'display test page'};
+        handy.system.display(req, res, 'testpage', pageInfo, logDetail);
+      });
+      return;
       
     });
   });
@@ -50,13 +58,13 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err}); return;}
       
       url.resolve('/testpageunauth', '/crazypage.html');
-      //console.log('current url is ' + global.location.href);
-      //history.pushState({current: 'window.location.href'}, '', 'crazypage.html');
-      res.render('testpage', {pageInfo: pageInfo});
+
+      var logDetail = {type: 'info', category: 'system', message: 'display testpageunauth page'};
+      handy.system.display(req, res, 'testpage', pageInfo, logDetail);
     });
   });
   
-  // Handy installation page - Tested
+  // Handy installation page
   app.get('/install', function(req, res){
     // default information
     var pageInfo = {
@@ -68,7 +76,8 @@ module.exports = function(app){
 
     // only allow installation if not previously done
     if(!handy.system.systemVariable.get('installation_flag')){
-      res.render('install', {pageInfo: pageInfo});
+      var logDetail = {type: 'info', category: 'system', message: 'display installation page'};
+      handy.system.display(req, res, 'install', pageInfo, logDetail);
     } else {
       handy.system.logger.record('info', {req: req, category: 'system', message: 'installation complete'});
       res.redirect('/');
@@ -76,7 +85,7 @@ module.exports = function(app){
     }
   });
 
-  /* Welcome page - Tested
+  /* Welcome page
    * first page seen by logged in users (as opposed to home page which is the first page not logged in users see)
    */
   app.get('/welcomepage', handy.user.requireAuthenticationStatus('authenticated'), function(req, res){
@@ -87,8 +96,8 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'welcomepage - error in prepGetRequest'}); return;}
       var welcomepage = handy.system.systemVariable.getConfig('welcomePage');
       if(welcomepage === '' || welcomepage === null || welcomepage === '/welcomepage'){
-        res.render('index', {pageInfo: pageInfo});
-        handy.system.logger.record('info', {req: req, category: 'system', message: 'welcome page'});
+        var logDetail = {type: 'info', category: 'system', message: 'display welcome page'};
+        handy.system.display(req, res, 'index', pageInfo, logDetail);
         return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
@@ -100,15 +109,28 @@ module.exports = function(app){
     });
   });
 
-  // Site configuration page - Tested
+  // main configuration page
   configurationR.get('/', handy.user.checkPermission('system.System', ['Can alter system configuration']), function(req, res){
+    handy.system.prepGetRequest({
+      info: {title: 'Site configuration links | ' + handy.system.systemVariable.getConfig('siteName')},
+      action: []
+    }, req, res, function(err, pageInfo){
+      if(err){handy.System.logger.record('error', {error: err, message: 'configuration - error in prepGetRequest'}); return;}
+
+      var logDetail = {type: 'info', category: 'system', message: 'display configuration directory page'};
+      handy.system.display(req, res, 'configuration', pageInfo, logDetail);
+    });
+  });
+
+  // general site configuration page
+  configurationR.get('/general', handy.user.checkPermission('system.System', ['Can alter system configuration']), function(req, res){
 
     // otherwise, continue preparing the configuration page
     handy.system.prepGetRequest({
       info: {title: 'Site configuration | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'configuration - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, message: 'configuration general - error in prepGetRequest'}); return;}
       
       var asyncFn = {
         accountpendingregistration: _getAccountsPendingRegistration,
@@ -127,8 +149,9 @@ module.exports = function(app){
         pageInfo.other = results;
         pageInfo.other.sitemapSubmit = handy.system.systemVariable.getConfig('sitemapSubmit');
         pageInfo.other.cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
-        res.render('configuration', {pageInfo: pageInfo});
-        handy.system.logger.record('info', {req: req, category: 'system', message: 'display configuration page'});
+
+        var logDetail = {type: 'info', category: 'system', message: 'display configuration page'};
+        handy.system.display(req, res, 'configgeneral', pageInfo, logDetail);
         return;
       });
     
@@ -138,23 +161,17 @@ module.exports = function(app){
         pool.getConnection(function(err, connection){
           if(err){
             asyncCallback(err);
-            //handy.system.systemMessage.set(req, 'danger', 'Something went wrong: ' + err.message);
-            //handy.system.redirectBack(0, req, res);  // redirect to current page
           } else {
             var query = 'SELECT id, name, email, createdate FROM user WHERE verified=false';
             connection.query(query, function(err, results){
               if(err){
                 asyncCallback(err);
-                //handy.system.systemMessage.set(req, 'danger', 'Something went wrong');
-                //handy.system.redirectBack(0, req, res);  // redirect to current page
               } else {
                 if(results.length > 0){
                   asyncCallback(null, results);
-                  //pageInfo.other.accountpendingregistration = results;
                 } else {
                   asyncCallback(null, []);
                 }
-                //res.render('configuration', {pageInfo: pageInfo});
               }
             });
           }
@@ -182,6 +199,7 @@ module.exports = function(app){
     });
   });
 
+  // access control configuration page
   configurationR.get('/permissions', handy.user.checkPermission('system.System', ['can alter system configuration']), function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Update role permissions | ' + handy.system.systemVariable.getConfig('siteName')},
@@ -192,15 +210,35 @@ module.exports = function(app){
       // get the resource and permissions lists
       pageInfo.other.resourcePermissionList = handy.system.systemVariable.getConfig('resourcePermissionList');
       pageInfo.other.rolesPermissionGrant = handy.system.systemVariable.getConfig('rolesPermissionGrant');
-    
-      res.render('permissions', {pageInfo: pageInfo});
-      handy.system.logger.record('info', {req: req, category: 'system', message: 'display permissions page'});
+
+      var logDetail = {type: 'info', category: 'system', message: 'display permissions page'};
+      handy.system.display(req, res, 'permissions', pageInfo, logDetail);
       return;
     });
   });
+
+
+  // theme configuration page
+  configurationR.get('/theme', handy.user.checkPermission('system.System', ['Can alter system configuration']), function(req, res){
+    // otherwise, continue preparing the theme page
+    handy.system.prepGetRequest({
+      info: {title: 'Site theme settings | ' + handy.system.systemVariable.getConfig('siteName'), 
+             description: 'Modify global theme settings | ' + handy.system.systemVariable.getConfig('siteName'),
+            },
+      action: []
+    }, req, res, function(err, pageInfo){
+      if(err){handy.system.logger.record('error', {error: err, message: 'theme - error in prepGetRequest'}); return;}
+
+      var logDetail = {type: 'info', category: 'system', message: 'display theme page'};
+      handy.system.display(req, res, 'theme', pageInfo, logDetail);
+      return;
+    });
+  });
+
+
   app.use('/configuration', configurationR);
 
-  // Access denied page - Tested
+  // Access denied page
   app.get('/accessdenied', function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Access denied | ' + handy.system.systemVariable.getConfig('siteName')},
@@ -211,8 +249,9 @@ module.exports = function(app){
       res.statusCode = 403;
       var accessdeniedpage = handy.system.systemVariable.getConfig('default403Page');
       if(accessdeniedpage === '' || accessdeniedpage === null || accessdeniedpage === '/accessdenied'){
-        res.render('403accessdenied', {pageInfo: pageInfo}); 
-        handy.system.logger.record('warn', {req: req, category: 'system', message: '403 access denied'});
+      
+        var logDetail = {type: 'warn', category: 'system', message: '403 access denied'};
+        handy.system.display(req, res, '403accessdenied', pageInfo, logDetail);
         return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
@@ -225,7 +264,7 @@ module.exports = function(app){
     });
   });
 
-  // 404 not found page - Tested
+  // 404 not found page
   app.get('/notfound', function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Page not found (404) | ' + handy.system.systemVariable.getConfig('siteName')},
@@ -236,8 +275,9 @@ module.exports = function(app){
       res.statusCode = 404;
       var notfoundpage = handy.system.systemVariable.getConfig('default404Page');
       if(notfoundpage === '' || notfoundpage === null || notfoundpage === '/notfound'){
-        res.render('404notfound', {pageInfo: pageInfo}); 
-        handy.system.logger.record('warn', {req: req, category: 'system', message: '404 not found'});
+
+        var logDetail = {type: 'warn', category: 'system', message: '404 content not found'};
+        handy.system.display(req, res, '404notfound', pageInfo, logDetail);
         return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
@@ -308,7 +348,6 @@ module.exports = function(app){
 
     res.header('Content-Type', 'text/xml');
     res.send(xml);
-    //handy.system.logger.record('info', {req: req, category: 'sitemap', message: 'sitemap submitted successfully'});
   });
   
   // contact form
@@ -318,9 +357,9 @@ module.exports = function(app){
       action: []
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'contact page - error in prepGetRequest'}); return;}
-      
-      res.render('contactform', {pageInfo: pageInfo});
-      handy.system.logger.record('info', {req: req, category: 'system', message: 'contact page'});
+
+      var logDetail = {type: 'info', category: 'system', message: 'display contact page'};
+      handy.system.display(req, res, 'contactform', pageInfo, logDetail);
     });
   });
   
@@ -331,7 +370,7 @@ module.exports = function(app){
    **************************************************************************************************
    *************************************************************************************************/
   
-  // Login page - Tested
+  // Login page
   app.get('/login', handy.user.requireAuthenticationStatus('unauthenticated'), function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Login | ' + handy.system.systemVariable.getConfig('siteName')},
@@ -344,12 +383,12 @@ module.exports = function(app){
         pageInfo.other.destination = encodeURIComponent(req.query.destination).replace(/%20/g, '+');
       }
 
-     res.render('login', {pageInfo: pageInfo});
-     handy.system.logger.record('info', {req: req, category: 'system', message: 'login page'});
+      var logDetail = {type: 'info', category: 'system', message: 'display login page'};
+      handy.system.display(req, res, 'login', pageInfo, logDetail);
     });
   });
   
-  // logout page - Tested
+  // logout page
   app.get('/logout', handy.user.requireAuthenticationStatus('authenticated'), function(req, res){
     var pageInfo = {
       title: null,
@@ -395,6 +434,7 @@ module.exports = function(app){
     
       // process differently, if the user is accessing their own profile or another's
       var ownAccount = req.session.user.id === uid ? true : false;
+      var logDetail;  // will contain the information sent to the log record
       switch(ownAccount){
         case true:
           var requestedUser = new handy.user.User();
@@ -410,9 +450,10 @@ module.exports = function(app){
           
             requestedUser.authenticated = true;
             pageInfo.title = 'User profile: ' + req.params.uid;
-            res.render('userprofile', {pageInfo: pageInfo});
+
+            logDetail = {type: 'info', category: 'user', message: 'user profile ' + uid + ' displayed'};
+            handy.system.display(req, res, 'userprofile', pageInfo, logDetail);
             requestedUser = null;  // free up memory
-            handy.system.logger.record('info', {req: req, category: 'user', message: 'user profile ' + uid + ' displayed'});
             return;
           });
           break;
@@ -442,9 +483,9 @@ module.exports = function(app){
               // render profile of requested user
               pageInfo.title = 'User profile: ' + uid;
               pageInfo.user = this
-              res.render('userprofile', {pageInfo: pageInfo});
+              logDetail = {type: 'info', category: 'user', message: 'user profile ' + uid + ' displayed'};
+              handy.system.display(req, res, 'userprofile', pageInfo, logDetail);
               requestedUser = null;  // free up memory
-              handy.system.logger.record('info', {req: req, category: 'user', message: 'user profile ' + uid + ' displayed'});
               return;
             }).bind(requestedUser));
           })(req, res);
@@ -473,8 +514,8 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'password reset page - error in prepGetRequest'}); return;}
       
       pageInfo.other.type = req.params.action;
-      res.render('passwordchange', {pageInfo: pageInfo});
-      handy.system.logger.record('info', {req: req, category: 'system', message: 'display password change page'});
+      var logDetail = {type: 'info', category: 'user', message: 'display password change page'};
+      handy.system.display(req, res, 'passwordchange', pageInfo, logDetail);
       return;
     });
   });
@@ -496,12 +537,14 @@ module.exports = function(app){
 
       // check if user is cancelling own account or someone elses
       var ownaccount = pageInfo.user.id === uid ? true : false;
+      var logDetail;  // will contain information sent to the log record
       switch (ownaccount){
         case true:
           // user is cancelling their own account so go ahead
           pageInfo.other.cancelUser = [{id: uid, name: pageInfo.user.name, email: pageInfo.user.email, createdate: pageInfo.user.createdate.toString()}];
-          res.render('cancelaccount', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'user', message: 'display account cancellation form. user: ' + uid});
+          
+          logDetail = {type: 'info', category: 'user', message: 'display account cancellation form. user: ' + uid};
+          handy.system.display(req, res, 'cancelaccount', pageInfo, logDetail);
           return;
           break;
         case false:
@@ -526,9 +569,9 @@ module.exports = function(app){
                 return;
               }
               pageInfo.other.cancelUser = [{id: this.id, name: this.name, email: this.email, createdate: this.createdate.toString()}];
-              res.render('cancelaccount', {pageInfo: pageInfo});
+              logDetail = {type: 'info', category: 'user', message: 'display account cancellation form. user: ' + uid};
+              handy.system.display(req, res, 'cancelaccount', pageInfo, logDetail);
               cancelUser = null;  // free up memory
-              handy.system.logger.record('info', {req: req, category: 'user', message: 'display account cancellation form. user: ' + uid});
               return;
             }).bind(cancelUser));
           })(req, res);
@@ -566,8 +609,8 @@ module.exports = function(app){
     
       pageInfo.other.action = 'create';
 
-      res.render('contentdisplay', {pageInfo: pageInfo});
-      handy.system.logger.record('info', {req: req, category: 'system', message: 'display content creation page'});
+      var logDetail = {type: 'info', category: 'system', message: 'display content creation page'};
+      handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
       return;
     });
   });
@@ -636,8 +679,8 @@ module.exports = function(app){
               pageInfo.other.displayEditLink = true;
             }
 
-            res.render('story', {pageInfo: pageInfo});
-            handy.system.logger.record('info', {req: req, category: 'content', message: 'story displayed. id: ' + story.id});
+            var logDetail = {type: 'info', category: 'content', message: 'story displayed. id: ' + story.id};
+            handy.system.display(req, res, 'story', pageInfo, logDetail);
             story = null; // free up memory
             return;
           });
@@ -702,9 +745,10 @@ module.exports = function(app){
           var categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
-        
-          res.render('contentdisplay', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'story opened for editing. id: ' + urlId});
+
+          var logDetail = {type: 'info', category: 'content', message: 'story opened for editing. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
+          story = null; // free up memory
         });
       });
     });
@@ -766,8 +810,9 @@ module.exports = function(app){
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
 
-          res.render('contentdisplay', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'story opened for deletion. id: ' + urlId});
+          var logDetail = {type: 'info', category: 'content', message: 'story opened for deletion. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
+          story = null; // free up memory
           return;
         });
       });
@@ -831,8 +876,8 @@ module.exports = function(app){
             pageInfo.other.displayEditLink = true;
           }
 
-          res.render('comment', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment displayed. id: ' + comment.id});
+          var logDetail = {type: 'info', category: 'content', message: 'comment displayed. id: ' + comment.id};
+          handy.system.display(req, res, 'comment', pageInfo, logDetail);
           comment = null; // free up memory
           return;
         });
@@ -895,9 +940,10 @@ module.exports = function(app){
           var categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
-        
-          res.render('contentdisplay', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment opened for editing. id: ' + urlId});
+
+          var logDetail = {type: 'info', category: 'content', message: 'comment opened for editing. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
+          comment = null; // free up memory
         });
       });
     });
@@ -962,9 +1008,10 @@ module.exports = function(app){
           var categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
-        
-          res.render('contentdisplay', {pageInfo: pageInfo});
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'comment opened for deletion. id: ' + urlId});
+          
+          var logDetail = {type: 'info', category: 'content', message: 'comment opened for deletion. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
+          comment = null;  // free up memory
         });
       });
     });
@@ -1067,9 +1114,10 @@ module.exports = function(app){
             handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted. category can not be opened for editing. id: ' + urlId});
             return;
           }
-          res.render('contentdisplay', {pageInfo: pageInfo});
+
+          var logDetail = {type: 'info', category: 'content', message: 'category opened for editing. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
           category = null; // free up memory
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'category opened for editing. id: ' + urlId});
           return;
         });
       });
@@ -1130,9 +1178,10 @@ module.exports = function(app){
             handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted.  category can not be opened for deletion. id: ' + urlId});
             return;
           }
-          res.render('contentdisplay', {pageInfo: pageInfo});
+          
+          var logDetail = {type: 'info', category: 'content', message: 'category opened for deletion. id: ' + urlId};
+          handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
           category = null; // free up memory
-          handy.system.logger.record('info', {req: req, category: 'content', message: 'category opened for deletion. id: ' + urlId});
           return;
         });
       });

@@ -1,13 +1,17 @@
-extends layout
+extends handy_layout
 
 block content
   .container-fluid
-    .page-header
-      .well
-        h1 Role permissions
-           br
-           small
-             | Please update the permissions for each role
     .row
-      .col-md-12
+      .col-md-offset-1.col-md-10
+        .page-header
+          .pull-right
+            a(href='/configuration') &larr;&nbsp;back to configuration settings
+          h1 Role permissions
+             br
+             small
+               | Please update the permissions for each role
+
+    .row
+      .col-md-offset-1.col-md-10
         include includes/forms/permissionsUpdate

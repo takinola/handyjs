@@ -1,0 +1,58 @@
+form.form-horizontal(name='themeSections', id='themeSections', action='/configtheme', method='post', role='form')
+  include ../components/csrf.jade
+
+  .page-header
+    h3 The listed tokens are available for use in theme template <br>
+      small Tokens will be replaced by the appropriate content at display time
+    ul
+      li [theme_title] &nbsp;&nbsp; Page title
+      li [theme_description] &nbsp;&nbsp; Page description
+      li [theme_canonical] &nbsp;&nbsp; Canonical link for the viewed page
+      li [theme_sitename] &nbsp;&nbsp; Site name
+      li [theme_login-logout] &nbsp;&nbsp; Login / Logout links
+      li [theme_messages] &nbsp;&nbsp; System message alerts
+      li [theme_ga] &nbsp;&nbsp; Google analytics script
+
+  .page-header
+    .form-group
+      label.control-label(for="head") HTML head
+      textarea#head.form-control(name="head", rows=10, required, data-default= pageInfo.templateDefault.head)
+        =pageInfo.themeTemplate.head
+
+  .page-header
+    .form-group
+      label.control-label(for="section_header") Page header
+      textarea#section_header.form-control(name="section_header", rows=15, required, data-default= pageInfo.templateDefault.section_header)
+        =pageInfo.themeTemplate.section_header
+
+  .page-header
+    .form-group
+      label.control-label(for="section_messages") Messages
+      textarea#section_messages.form-control(name="section_messages", rows=5, required, data-default= pageInfo.templateDefault.section_messages)
+        =pageInfo.themeTemplate.section_messages
+
+  .page-header
+    .form-group
+      label.control-label(for="section_footer") Page footer
+      textarea#section_footer.form-control(name="section_footer", rows=15, required, data-default= pageInfo.templateDefault.section_footer)
+        =pageInfo.themeTemplate.section_footer
+
+  .page-header
+    .form-group
+      label.control-label(for="section_bottomscripts") Bottom scripts
+      textarea#section_bottomscripts.form-control(name="section_bottomscripts", rows=5, data-default=pageInfo.templateDefault.section_bottomscripts)
+        =pageInfo.themeTemplate.section_bottomscripts
+
+  .page-header
+    .form-group
+      label.control-label(for="section_extras") Page extras
+      textarea#section_extras.form-control(name="section_extras", rows=5, data-default=pageInfo.templateDefault.section_extras)
+        =pageInfo.themeTemplate.section_extras
+
+  .form-group
+    .row
+      .col-md-4
+        button.btn.btn-lg.btn-primary(type="submit") Update theme
+      .col-md-offset-4.col-md-4
+        .pull-right
+          button#restoreDefault.btn.btn-lg.btn-default(type="button") Restore defaults

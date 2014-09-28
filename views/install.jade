@@ -1,14 +1,18 @@
-extends layout
+extends handy_layout
 
 block header
 
 block content
-  .container-fluid
-    .well
-      h1 Welcome to your new Handy site
-      p.lead Please provide the information needed to get started
+  .container-fluid.spacer
     .row
-      .col-xs-12
-        include includes/forms/siteInstall
+      .col-md-offset-1.col-md-10
+        .row
+          .col-md-12
+            .well
+              h1 Welcome to your new Handy site
+              p.lead Please provide the information needed to install Handy and get started
+        .row
+          .col-md-12
+            include includes/forms/siteInstall
 
 block footer

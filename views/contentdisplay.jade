@@ -1,9 +1,9 @@
-extends layout
+extends handy_layout
 
 block content
   .container-fluid.spacer.fill-screen-height
     .row
-      .col-md-offset-1
+      .col-md-offset-1.col-md-10
         - var type = pageInfo.other.contentType.toLowerCase()
   
         case type

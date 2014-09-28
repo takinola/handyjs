@@ -198,6 +198,23 @@ module.exports = function(app){
     });
   });
   
+  // theme configuration form
+  app.post('/configtheme', handy.user.checkPermission('system.System', ['can alter system configuration']), handy.system.validateForm('configTheme'), function(req, res){
+    var update = {theme: req.body};
+
+    delete update.theme._csrf;  // remove the _csrf token
+    handy.system.systemVariable.updateConfig(update, function(err){
+      if(err){
+        handy.system.systemMessage.set(req, 'danger', 'Changes could not be saved!');
+        handy.system.redirectBack(0, req, res);  // redirect to previous page
+        return;
+      }
+      handy.system.systemMessage.set(req, 'success', 'Changes saved');
+      handy.system.redirectBack(0, req, res);  // redirect to previous page
+      return;
+    });
+  });
+
   // password change form (type can be 'change' or 'reset'.  'change' means the user knows the current password, 'reset' means the user does not have the current password) - Tested
   app.post('/password/:type', handy.user.requireAuthenticationStatus('authenticated'), handy.system.validateForm('passwordChange'), function(req, res){
     var oldPassword = req.body.oldPassword || null;

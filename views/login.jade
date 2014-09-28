@@ -1,9 +1,9 @@
-extends layout
+extends handy_layout
 
 block content
   .container-fluid.fill-screen-height
     .row
-      .col-md-offset-2.col-md-10
+      .col-md-offset-1.col-md-10
         h1 Please Login
 
         .tabbable
@@ -25,6 +25,7 @@ block content
               .spacer
                 include includes/forms/userRegister
 
+block extras
   script.
     //- choose tab
     //- enclose in window.onload so script always run after main page scripts

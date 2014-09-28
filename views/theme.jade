@@ -1,0 +1,36 @@
+extends handy_layout
+
+block content
+  .container-fluid
+    .row
+      .col-md-offset-2.col-md-8
+        .page-header
+          .pull-right
+            a(href='/configuration') &larr;&nbsp;back to configuration settings
+          h1 Theme template
+
+    .row
+      .col-md-offset-2.col-md-8
+        include includes/forms/themeTemplate
+
+block extras
+  section#extras
+    // extra scripts or content as needed
+    // script to restore defaults
+    script.
+      var defaultBtn = document.getElementById('restoreDefault');
+      defaultBtn.addEventListener('click', insertDefaults, false);
+
+      function insertDefaults(){
+        var theme_texts = document.getElementsByTagName('textarea');
+        var default_value;
+        for(var i=0; i < theme_texts.length; i++){
+          default_value = '';
+          defaultValue = theme_texts[i].getAttribute('data-default');
+          //console.log(defaultValue);
+          if(defaultValue !== '' && defaultValue !== undefined && defaultValue !== null){
+            console.log('setting innerHTML');
+            theme_texts[i].value = defaultValue;
+          }
+        }
+      }

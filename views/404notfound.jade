@@ -1,10 +1,14 @@
-extends layout
+extends handy_layout
 
 block content
   .container-fluid.fill-screen-height
-    h1 Page not found &nbsp
-      small
-        | Error status code 404
-      
-    p Sorry but I could not find the page you are looking for.
-    p It may have been moved or deleted.
+    .row
+      .col-md-offset-2.col-md-8
+        h1 Page not found &nbsp
+          small
+            | Error status code 404
+          
+        p Sorry but I could not find the page you are looking for.
+        p It may have been moved or deleted.
+        p Please return to the 
+          a(href="/") home page
