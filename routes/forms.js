@@ -641,6 +641,11 @@ module.exports = function(app){
     var update = {};
     update.robotsTxt = req.body.robotsTxt;
     handy.system.systemVariable.updateConfig(update, function(err){
+      if(err){
+        handy.system.systemMessage.set(req, 'warn', 'Error updating robots.txt');
+      } else {
+        handy.system.systemMessage.set(req, 'success', 'Changes saved');
+      }
       handy.system.redirectBack(0, req, res);  // redirect to previous page
     });
   });
