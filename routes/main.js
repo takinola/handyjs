@@ -632,7 +632,11 @@ module.exports = function(app){
       pageInfo.other.destination = encodeURIComponent(pageInfo.siteinfo.path);
 
       var urlId = _getUrlId(req, contentType);
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be displayed not found. id: ' + req.params.id});
+        return;
+      }
       // get content from cache
       var story = new handy.content.Story();
 
@@ -706,7 +710,11 @@ module.exports = function(app){
       var contentType = 'story';
       var uid = parseInt(req.session.user.id);
       var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be edited not found. id: ' + req.params.id});
+        return;
+      }
       pageInfo.other.contentId = urlId;
     
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
@@ -771,7 +779,11 @@ module.exports = function(app){
       var contentType = 'story';
       var uid = parseInt(req.session.user.id);
       var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be deleted not found. id: ' + req.params.id});
+        return;
+      }
       pageInfo.other.contentId = urlId;
 
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
@@ -838,8 +850,8 @@ module.exports = function(app){
 
       var urlId = _getUrlId(req, contentType);
       if(urlId === undefined){
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for display. id: ' + req.params.id});
-        res.redirect('/notfound'); 
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for display. id: ' + req.params.id}); 
         return;
       }
       // get content from cache
@@ -902,7 +914,11 @@ module.exports = function(app){
       var contentType = 'comment';
       var uid = parseInt(req.session.user.id);
       var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){res.redirect('/notfound'); return;}
+      if(urlId === undefined){
+        res.redirect('/notfound');
+        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment to be edited not found. id: ' + req.params.id});
+        return;
+      }
       pageInfo.other.contentId = urlId;
     
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
