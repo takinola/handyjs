@@ -27,7 +27,7 @@ module.exports = function(app){
   
   // test page: for running various experiments
   app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res, next){
-    /*
+    
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
       action: []
@@ -40,27 +40,9 @@ module.exports = function(app){
         handy.system.display(req, res, 'testpage', pageInfo, logDetail);
       });
       return;
-
-      handy.content.submitXmlSitemap(req, res, function(nullVar, messageObject){
-        var logDetail = {type: 'info', category: 'system', message: 'display test page'};
-        handy.system.display(req, res, 'testpage', pageInfo, logDetail);
-      });
-      return;
       
     });
-    */
-
-    // testing dynamic robots.txt
-    var text = 'user-agent: *\n';
-    text += 'Disallow: /install\n';
-    text += 'Allow: /\n';
-    text += '# technically not valid since Sitemap should point to absolute Url\n';
-    text += 'Sitemap:' + req.protocol + '://' + req.hostname + '/sitemap.xml\n';
-
-    res.header('Content-Type', 'text/plain');
-    res.send(text);
-
-
+    
   });
   
   // test page: for running unauthenticated various experiments
@@ -291,15 +273,13 @@ module.exports = function(app){
       var notfoundpage = handy.system.systemVariable.getConfig('default404Page');
       if(notfoundpage === '' || notfoundpage === null || notfoundpage === '/notfound'){
 
-        var logDetail = {type: 'warn', category: 'system', message: '404 content not found'};
-        handy.system.display(req, res, '404notfound', pageInfo, logDetail);
+        handy.system.display(req, res, '404notfound', pageInfo);
         return;
       } else {
         // restore the system messages before redirect.  This is required if redirecting after doing a prepGetRequest
         // because prepGetRequest moves the messages to the res object, which then gets wiped out after a redirect
         handy.system.restoreSystemMessage(req, res); 
         res.redirect(res.statusCode, notfoundpage);
-        handy.system.logger.record('warn', {req: req, category: 'system', message: '404 not found'});
         return;
       }
     });
