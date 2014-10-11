@@ -27,6 +27,7 @@ module.exports = function(app){
   
   // test page: for running various experiments
   app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res, next){
+    /*
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
       action: []
@@ -47,6 +48,19 @@ module.exports = function(app){
       return;
       
     });
+    */
+
+    // testing dynamic robots.txt
+    var text = 'user-agent: *\n';
+    text += 'Disallow: /install\n';
+    text += 'Allow: /\n';
+    text += '# technically not valid since Sitemap should point to absolute Url\n';
+    text += 'Sitemap:' + req.protocol + '://' + req.hostname + '/sitemap.xml\n';
+
+    res.header('Content-Type', 'text/plain');
+    res.send(text);
+
+
   });
   
   // test page: for running unauthenticated various experiments
@@ -149,6 +163,7 @@ module.exports = function(app){
         pageInfo.other = results;
         pageInfo.other.sitemapSubmit = handy.system.systemVariable.getConfig('sitemapSubmit');
         pageInfo.other.cronPath = handy.system.systemVariable.getConfig('cronRecord').path;
+        pageInfo.other.robotsTxt = handy.system.systemVariable.getConfig('robotsTxt');
 
         var logDetail = {type: 'info', category: 'system', message: 'display configuration page'};
         handy.system.display(req, res, 'configgeneral', pageInfo, logDetail);
@@ -309,6 +324,7 @@ module.exports = function(app){
     });
   });
   
+  // XML sitemap
   app.get('/sitemap.xml', handy.system.recordUrlHistory(), function(req, res){
     // get all content urls
     var alias = handy.system.systemVariable.getConfig('alias');
@@ -348,6 +364,14 @@ module.exports = function(app){
 
     res.header('Content-Type', 'text/xml');
     res.send(xml);
+  });
+
+
+  // robots.txt
+  app.get('/robots.txt', handy.system.recordUrlHistory(), function(req, res){
+    var robots = handy.system.systemVariable.getConfig('robotsTxt') || '';
+    res.header('Content-Type', 'text/plain');
+    res.send(robots);
   });
   
   // contact form

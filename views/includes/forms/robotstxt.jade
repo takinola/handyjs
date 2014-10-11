@@ -1,0 +1,13 @@
+.col-md-offset-1.col-md-8
+  form(name='robotstxt', id='robots', action='/robots', method='post', role='form')
+    include ../components/csrf.jade
+
+    .form-group
+      .col-md-12
+        label.control-label(for='robotsTxt') Robots.txt
+        textarea.form-control(rows=20, id='robotsTxt', name='robotsTxt', required) #{pageInfo.other.robotsTxt}
+        span.help-block Enter robots.txt instructions one-per line
+
+    .form-group
+      .col-md-12
+        button.btn.btn-primary(type='submit') Update robots.txt

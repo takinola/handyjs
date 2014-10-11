@@ -1,3 +1,8 @@
+0.9.1 / 10/10/2014
+---
+* robots.txt is now a dynamic file served by nodejs and no longer a static file
+* logging for 404 pages now shows the original request 
+
 0.9.0 / 09/28/2014
 ---
 * introduces theme engine.

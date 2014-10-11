@@ -630,6 +630,20 @@ module.exports = function(app){
       handy.system.redirectBack(0, req, res); // redirect to previous page
     });
   });
+
+
+  // process robots.txt form 
+  app.post('/robots', handy.system.validateForm('robotsForm'), function(req, res){
+    // delete csrf
+    delete req.body._csrf;
+
+    // process update
+    var update = {};
+    update.robotsTxt = req.body.robotsTxt;
+    handy.system.systemVariable.updateConfig(update, function(err){
+      handy.system.redirectBack(0, req, res);  // redirect to previous page
+    });
+  });
   
   app.post('/contact', handy.system.validateForm('contactForm'), function(req, res){
     // contact form sunmissions are sent to the site admin (i.e. user with uid=1)
