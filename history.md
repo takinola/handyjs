@@ -1,3 +1,8 @@
+0.9.2 / 10/11/2014
+---
+* modified default theme to enable responsiveness in IE8 and below
+
+
 0.9.1 / 10/10/2014
 ---
 * robots.txt is now a dynamic file served by nodejs and no longer a static file
