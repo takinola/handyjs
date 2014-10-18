@@ -34,13 +34,14 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
-      handy.system.logger.report(req, res, function(nullVar, result){
-        console.log('report: \n', handy.utility.inspect(result));
-        var logDetail = {type: 'info', category: 'system', message: 'display test page'};
-        handy.system.display(req, res, 'testpage', pageInfo, logDetail);
-      });
+      res.send(handy.utility.generateRandomString(20));
       return;
-      
+      /*
+      handy.utility.generateRandomString(10, function(err, random){
+        if(err){res.send(err);}
+        res.send(random);
+      });
+*/
     });
     
   });

@@ -1,3 +1,8 @@
+0.9.3 / 10/17/2014
+---
+* ensured each site had a unique session secret, cookie secret and 
+* the keys for each content cache are uniquely prefixed
+
 0.9.2 / 10/11/2014
 ---
 * modified default theme to enable responsiveness in IE8 and below
