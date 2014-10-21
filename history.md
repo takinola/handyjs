@@ -1,3 +1,8 @@
+1.0.1 / 10/20/2014
+---
+* Fixed minor bugs
+
+
 0.9.3 / 10/17/2014
 ---
 * ensured each site had a unique session secret, cookie secret and 
