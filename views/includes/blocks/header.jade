@@ -21,9 +21,10 @@ nav.navbar.navbar-custom.navbar-static-top(role='navigation')
           a(href='/qanda') Q+A
         li
           a(href='/blog') Blog
-        li
-          if (pageInfo.user.authenticated === true)  
+        if (pageInfo.user.authenticated === true)
+          li
             a(href='/logout') Logout
-          else
+        else
+          li 
             a(href='/login') Login
 

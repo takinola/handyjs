@@ -31,6 +31,10 @@ form.form-horizontal(name='userProfile', id='userProfile', action='/userprofile'
         .col-xs-4
           input.form-control(type='number', id='userId', name='userId', value='#{pageInfo.user.id}', disabled)
       .form-group
+        label.control-label.col-xs-2(for='userOrg') Organization
+        .col-xs-4
+          input.form-control(type='text', id='userOrg', name='userOrg', value='#{pageInfo.user.organizationName}', disabled)
+      .form-group
         label.control-label.col-xs-2(for='lastLogin') Last login
         .col-xs-4
           - var lastLogin = new Date(pageInfo.user.lastlogin).toString();

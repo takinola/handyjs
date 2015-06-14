@@ -1,0 +1,25 @@
+- var destination = ''
+if pageInfo.other.destination
+  - destination = '?destination=' + pageInfo.other.destination
+
+form.form-horizontal(name='orgRegister', id='orgRegister' ,action='/orgregister' + destination, method='post', role='form')
+  include ../components/csrf
+  .form-group
+    label.control-label.col-sm-2(for='userEmail') Email
+    .col-sm-4
+      input.form-control(type='email', id='orgRegister_userEmail', name='userEmail', placeholder='e.g. name@gmail.com', required)
+  .form-group
+    label.control-label.col-sm-2(for='orgName') Organization
+    .col-sm-4
+      input.form-control(type='text', id='orgRegister_orgName', name='orgName', placeholder='e.g. Mike\'s plumbing' , required)
+  .form-group
+    label.control-label.col-sm-2(for='userPassword') Password
+    .col-sm-4
+      input.form-control(type='password', id='orgRegister_userPassword', name='userPassword', placeholder='Password')
+  .form-group
+    label.control-label.col-sm-2(for='userPasswordConf') Confirm Password
+    .col-sm-4
+      input.form-control(type='password', id='orgRegister_userPasswordConf', name='userPasswordConf', placeholder='Enter password again')
+  .form-group
+    .col-sm-offset-2.col-sm-4
+      button.btn.btn-primary(type='submit') Sign me up! 

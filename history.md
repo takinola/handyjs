@@ -1,3 +1,10 @@
+2.0.1 / 06/14/2015
+NOTE: version 2.0.1 is a breaking change from previous versions
+* Upgraded to io.js in anticipation of Node.js merge
+* Refactored bootstrap code
+* Made handy.js OS independent
+* Added organization accounts 
+
 1.0.1 / 10/20/2014
 ---
 * Fixed minor bugs

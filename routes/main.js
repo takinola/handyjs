@@ -1,6 +1,7 @@
 /*
  * Routes for generic pages e.g. home, about, welcome, etc
  */
+'use strict';
 
 var _ = require('underscore')
   , async = require('async')
@@ -17,6 +18,7 @@ module.exports = function(app){
   var storyR = express.Router();
   var commentR = express.Router();
   var categoryR = express.Router();
+  let contentR = express.Router();
 
 
   /**************************************************************************************************
@@ -27,7 +29,6 @@ module.exports = function(app){
   
   // test page: for running various experiments
   app.get('/testpage', handy.user.checkPermission('system.System', ['Can run tests']), function(req, res, next){
-    
     handy.system.prepGetRequest({
       info: {title: 'Test scenarios'},
       action: []
@@ -35,13 +36,14 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'testpage - prepGetRequest'}); return;}
 
       res.send(handy.utility.generateRandomString(20));
-      return;
-      /*
-      handy.utility.generateRandomString(10, function(err, random){
-        if(err){res.send(err);}
-        res.send(random);
+      const pool = handy.system.systemVariable.get('pool');
+      pool.getConnection(function(err, connection){
+        let query = 'SELECT organization FROM user';
+        connection.query(query, function(err, results){
+          console.log(typeof results[0].organization);
+        });
       });
-*/
+
     });
     
   });
@@ -393,6 +395,74 @@ module.exports = function(app){
     });
   });
   
+
+  // Organization admin registration page
+  app.get('/organization/register', handy.user.requireAuthenticationStatus('unauthenticated'), function(req, res){
+    handy.system.prepGetRequest({
+      info: {title: 'Register new organization | ' + handy.system.systemVariable.getConfig('siteName')},
+      action: []
+    }, req, res, function(err, pageInfo){
+      if(err){handy.system.logger.record('error', {error: err, message: 'organization registration page - error in prepGetRequest'}); return;}
+      
+      // set post login/registration destination
+      if(req.query.destination){
+        pageInfo.other.destination = encodeURIComponent(req.query.destination).replace(/%20/g, '+');
+      }
+
+      var logDetail = {type: 'info', category: 'system', message: 'display organization registration page'};
+      handy.system.display(req, res, 'orgregistration', pageInfo, logDetail);
+    });
+  });
+
+
+  // Organization user management page
+  app.get('/organization/manage', handy.user.requireAuthenticationStatus('authenticated'), handy.user.checkPermission('user.User', ["can modify other users' accounts"]), function(req, res){
+    handy.system.prepGetRequest({
+      info: {title: 'Manage user accounts for your organization | ' + handy.system.systemVariable.getConfig('siteName')},
+      action: []
+    }, req, res, function(err, pageInfo){
+      if(err){handy.system.logger.record('error', {error: err, message: 'organization management page - error in prepGetRequest'}); return;}
+      
+      // get list of users in this organization
+      _findOrganizationUsers(req)
+      .then(function(list){
+        pageInfo.other.orgusers = list;
+        let logDetail = {type: 'info', category: 'system', message: 'display organization management page'};
+        handy.system.display(req, res, 'orgmanagement', pageInfo, logDetail);
+      })
+      .catch(function(err){
+        handy.system.systemMessage.set(req, 'danger', 'Something went wrong: ' + err.message);
+        handy.system.redirectBack(0, req, res);  // redirect to current page
+        handy.system.logger.record('error', {error: err, message: 'organization management page - error displaying'});
+        return;
+      });
+
+      // find all users who share the same organization as the current user
+      function _findOrganizationUsers(req){
+        return new Promise(function(resolve, reject){
+          let organization = req.session.user.organization;
+          const pool = handy.system.systemVariable.get('pool');
+          pool.getConnection(function(err, connection){
+            if(err){ return reject(err); }
+            let query = 'SELECT id, name, email, createdate, lastlogin, deleted FROM user ';
+            query += 'WHERE organization = ' + connection.escape(organization);
+            connection.query(query, function(err, results){
+              let list = [];
+              if(err){ return reject(err); }
+              // remove current user from list
+              results.forEach(function(user){
+                req.session.user.id !== parseInt(user.id) ? list.push(user) : null;
+              });
+
+              return resolve(list);
+            });
+          });
+        });
+      }
+    });
+  });
+
+
   // logout page
   app.get('/logout', handy.user.requireAuthenticationStatus('authenticated'), function(req, res){
     var pageInfo = {
@@ -455,12 +525,15 @@ module.exports = function(app){
           
             requestedUser.authenticated = true;
             pageInfo.title = 'User profile: ' + req.params.uid;
-
-            logDetail = {type: 'info', category: 'user', message: 'user profile ' + uid + ' displayed'};
-            handy.system.display(req, res, 'userprofile', pageInfo, logDetail);
-            requestedUser = null;  // free up memory
-            return;
-          });
+            handy.system.getOrganizationName(this.organization, (function(organizationName){
+              this.organizationName = organizationName;
+              pageInfo.user = this;
+              logDetail = {type: 'info', category: 'user', message: 'user profile ' + uid + ' displayed'};
+              handy.system.display(req, res, 'userprofile', pageInfo, logDetail);
+              requestedUser = null;  // free up memory
+              return;
+            }).bind(this));
+          }.bind(requestedUser));
           break;
         case false:
           // check if requesting user has the right permissions to view another users profile
@@ -594,7 +667,7 @@ module.exports = function(app){
    **************************************************************************************************
    *************************************************************************************************/
   
-  app.get('/content/create/:type', handy.user.requireAuthenticationStatus('authenticated'), function(req, res){
+  contentR.get('/create/:type', handy.user.requireAuthenticationStatus('authenticated'), function(req, res){
     handy.system.prepGetRequest({
       info: {title: 'Create new ' + req.params.type + ' | ' + handy.system.systemVariable.getConfig('siteName')},
       action: []
@@ -602,99 +675,112 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: 'content creation page - error in prepGetRequest'}); return;}
       
       // get list of all content types in the system
-      var contentTypeList = handy.system.systemVariable.getConfig('contentTypeList');
+      let contentTypeList = handy.system.systemVariable.getConfig('contentTypeList');
       contentTypeList = Object.keys(contentTypeList);
     
       pageInfo.other.contentTypeList = contentTypeList;
       pageInfo.other.contentType = req.params.type;
 
-      var categoryList = handy.system.systemVariable.getConfig('categoryList');
+      let categoryList = handy.system.systemVariable.getConfig('categoryList');
       pageInfo.other.categoryDefault = {id: null, name: null, parent: null};
       pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
     
       pageInfo.other.action = 'create';
 
-      var logDetail = {type: 'info', category: 'system', message: 'display content creation page'};
+      let logDetail = {type: 'info', category: 'system', message: 'display content creation page'};
       handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
       return;
     });
   });
-  
+
+  // redirect aliases to real content
+  contentR.get('/:id', function(req, res){
+    // find corresponding content
+    let content = handy.content.findContentFromAlias(req.params.id);
+    let contentUrl  = content.url !== null ? content.url : '/notfound';
+    res.redirect(contentUrl);
+  });
+
+  contentR.get('/:id/:action', function(req, res){
+    // find corresponding content
+    let content = handy.content.findContentFromAlias(req.params.id);
+    let contentUrl  = content.url !== null ? content.url + '/' + req.params.action : '/notfound';
+
+    res.redirect(contentUrl);
+  });
+
+  app.use('/content', contentR);
 
   storyR.get('/:id', handy.user.checkPermission('content.Story', ['Can view content']), function(req, res){
+    let contentType = 'story';
+
     handy.system.prepGetRequest({
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'story display page - error in prepGetRequest'}); return;}
-      
-      var contentType = 'story';
-      pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
-      pageInfo.other.destination = encodeURIComponent(pageInfo.siteinfo.path);
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' display page - error in prepGetRequest'}); return;}
 
-      var urlId = _getUrlId(req, contentType);
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be displayed not found. id: ' + req.params.id});
-        return;
-      }
       // get content from cache
-      var story = new handy.content.Story();
+      let story = new handy.content.Story();
 
-      story.load(urlId, 'id', function(err, result){
+      pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
+
+      story.load(pageInfo.siteinfo.path, 'url', (function(err, result){
         if(err){
           story = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading story for display'}); 
-          return _endProcessingWithFail(err, req, res);
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display'}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
+        
+        pageInfo.other.destination = encodeURIComponent(pageInfo.siteinfo.path);
 
-        pageInfo.title = _.escape(story.title).substr(0, 40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
-        pageInfo.description = _.escape(story.title) + '. ' + _.escape(story.body.substr(0,130));
-        pageInfo.canonical = req.protocol + '://' + req.hostname + story.url;
+        pageInfo.title = _.escape(this.title).substr(0, 40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.description = _.escape(this.title) + '. ' + _.escape(this.body.substr(0,130));
+        pageInfo.canonical = req.protocol + '://' + req.hostname + this.url;
         pageInfo.other.storyValue = {};
-        pageInfo.other.storyValue.title = _.escape(story.title);
-        pageInfo.other.storyValue.link = story.link;
-        pageInfo.other.storyValue.body = story.body;
-        pageInfo.other.storyValue.contentlist = story.contentlist;
+        pageInfo.other.storyValue.title = _.escape(this.title);
+        pageInfo.other.storyValue.link = this.link;
+        pageInfo.other.storyValue.body = this.body;
+        pageInfo.other.storyValue.contentid = this.contentid;
       
-        // check if story is published or deleted
-        !story.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
-        story.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-        if(!story.published || story.deleted){
+        // check if content is published or deleted
+        !this.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
+        this.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
+        if(!this.published || this.deleted){
           handy.system.redirectBack(1, req, res);
           story = null;
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'story not displayed because not published or deleted. id: ' + urlId});
+          handy.system.logger.record('warn', {req: req, category: 'content', message: contentType +  ' not displayed because not published or deleted. id: ' + this.id});
           return;
         }
       
         // get comments
         pageInfo.other.comments = {};
-        story.getRelatedContent('comment', function(err, commentList){
+        this.getRelatedContent('comment', (function(err, commentList){
           if(err){
             pageInfo.other.comments = {0:{text: 'comments could not be retrieved at this time', creator: null}};
-            handy.system.logger.record('error', {error: err, message: 'error getting related comments for story. id: ' + story.id});
+            handy.system.logger.record('error', {error: err, message: 'error getting related comments for ' + contentType + '. id: ' + this.id});
           } else {
             commentList.forEach(function(comm, commId){
-              pageInfo.other.comments[commId] = {text: _.escape(comm.body).replace(/\r?\n/g, '<br/>'), creator: comm.name};
+              pageInfo.other.comments[commId] = {text: _.escape(comm.comment.body).replace(/\r?\n/g, '<br/>'), creator: comm.user.name};
             });
           }
 
           // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
-          var uid = parseInt(req.session.user.id);
-          handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+          let uid = parseInt(req.session.user.id);
+          handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'edit', (function(err, result){
             if(err || !result){
               pageInfo.other.displayEditLink = false;
             } else {
               pageInfo.other.displayEditLink = true;
             }
 
-            var logDetail = {type: 'info', category: 'content', message: 'story displayed. id: ' + story.id};
+            var logDetail = {type: 'info', category: 'content', message: contentType + ' displayed. id: ' + this.id};
             handy.system.display(req, res, 'story', pageInfo, logDetail);
             story = null; // free up memory
             return;
-          });
-        });
-      });
+          }).bind(this));
+        }).bind(this));
+      }).bind(story));
     });
   });
 
@@ -703,67 +789,64 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'story edit page - error in prepGetRequest'}); return;}
+      let contentType = 'story';
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
-      pageInfo.other.contentType = 'story';
-      pageInfo.other.action = 'edit';
-    
-      var contentType = 'story';
-      var uid = parseInt(req.session.user.id);
-      var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be edited not found. id: ' + req.params.id});
-        return;
-      }
-      pageInfo.other.contentId = urlId;
-    
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+      let uid = parseInt(req.session.user.id);
+      let url = '/' + contentType + '/' + req.params.id;
+      
+      // get content from database / cache
+      let story = new handy.content.Story();
+      story.load(url, 'url', (function(err){
+        let contentId = this.id;
         if(err){
-          handy.system.logger.record('error', {error: err, message: 'error loading story for display. id: ' + urlId}); 
-          return _endProcessingWithFail(err, req, res);
+          story = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
-        if(!result){
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to open story for editing. id: ' + urlId});
-          return _endProcessingWithFail(null, req, res);
-        }
-      
-        // get content from cache
-        var story = new handy.content.Story();
-        story.load(urlId, 'id', function(err, result){
+
+        // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
           if(err){
-            story = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading story for editing. id: ' + story.id}); 
-            return _endProcessingWithFail(err, req, res);
+            handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
+            return _endProcessingWithFail(err, req, res, 1);
           }
-        
-          // check if story is deleted
-          story.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-          if(story.deleted){
-            handy.system.redirectBack(0, req, res);
+          if(!flag){
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to open ' + contentType + ' for editing. id: ' + this.id});
+            return _endProcessingWithFail(null, req, res, 1);
+          }
+
+          // check if content is deleted
+          if(this.deleted){
+            handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted');
+            handy.system.redirectBack(1, req, res);
             story = null;
-            handy.system.logger.record('warn', {req: req, category: 'content', message: 'story can not be edited. id: ' + urlId});
+            handy.system.logger.record('warn', {req: req, category: 'content', message: contentType + ' can not be edited. id: ' + this.id});
             return;
           }
 
-          pageInfo.title = 'Editing Story - ' + story.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+          pageInfo.title = 'Editing ' + contentType + ' - ' + this.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
           pageInfo.other.defaultValue = {};
-          pageInfo.other.defaultValue.titleValue = story.title;
-          pageInfo.other.defaultValue.bodyValue = story.body;
-          pageInfo.other.defaultValue.urlValue = story.url;
-          pageInfo.other.defaultValue.categoryValue = parseInt(story.category);
-          pageInfo.other.defaultValue.publishValue = story.published;
-        
-          var categoryId = story.category === null ? null : parseInt(story.category);
-          var categoryList = handy.system.systemVariable.getConfig('categoryList');
+          pageInfo.other.defaultValue.titleValue = this.title;
+          pageInfo.other.defaultValue.bodyValue = this.body;
+          pageInfo.other.defaultValue.urlValue = this.url;
+          pageInfo.other.defaultValue.categoryValue = parseInt(this.category);
+          pageInfo.other.defaultValue.publishValue = this.published;
+
+          pageInfo.other.contentId = this.id;
+          pageInfo.other.action = 'edit';
+          pageInfo.other.contentType = contentType;
+
+          let categoryId = this.category === null ? null : parseInt(this.category);
+          let categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
 
-          var logDetail = {type: 'info', category: 'content', message: 'story opened for editing. id: ' + urlId};
+          let logDetail = {type: 'info', category: 'content', message: contentType + ' opened for editing. id: ' + this.id};
           handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
           story = null; // free up memory
-        });
-      });
+        }).bind(this));
+      }).bind(story));
     });
   });
 
@@ -772,67 +855,62 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'story deletion page - error in prepGetRequest'}); return; }
-      
-      pageInfo.other.contentType = 'story';
-      pageInfo.other.action = 'delete';
-    
-      var contentType = 'story';
-      var uid = parseInt(req.session.user.id);
-      var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'story to be deleted not found. id: ' + req.params.id});
-        return;
-      }
-      pageInfo.other.contentId = urlId;
+      let contentType = 'story';
+      let uid = parseInt(req.session.user.id);
+      let url = '/' + contentType + '/' + req.params.id;
 
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
+
+      // get content from database
+      let story = new handy.content.Story();
+      story.load(url, 'url', (function(err){
         if(err){
-          handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete story'});
-          return _endProcessingWithFail(err, req, res);
+          story = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for deletion'}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
-        if(!result){
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. story can not be opened for deletion. id: ' + urlId});
-          return _endProcessingWithFail(null, req, res);
-        }
-      
-        // get content from cache
-        var story = new handy.content.Story();
-        story.load(urlId, 'id', function(err, result){
+
+        // check if user has the permissions to delete this content
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
           if(err){
-            story = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading story for deletion'}); 
-            return _endProcessingWithFail(err, req, res);
+            handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete ' + contentType});
+            return _endProcessingWithFail(err, req, res, 1);
           }
-        
-          // check if story is deleted
-          story.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-          if(story.deleted){
-            handy.system.redirectBack(0, req, res);
+          if(!result){
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. ' + contentType + ' can not be opened for deletion. id: ' + this.id});
+            return _endProcessingWithFail(null, req, res, 1);
+          }
+
+          // check if content is deleted
+          this.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
+          if(this.deleted){
+            handy.system.redirectBack(1, req, res);
             story = null;
-            handy.system.logger.record('warn', {req: req, category: 'content', message: 'story already deleted. story can not be opened for deletion. id: ' + urlId});
+            handy.system.logger.record('warn', {req: req, category: 'content', message: contentType + ' already deleted. ' + contentType + ' can not be opened for deletion. id: ' + this.id});
             return;
           }
 
-          pageInfo.title = 'Delete Story - ' + story.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+          pageInfo.title = 'Delete ' + contentType + ' - ' + this.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
           pageInfo.other.defaultValue = {};
-          pageInfo.other.defaultValue.titleValue = story.title;
-          pageInfo.other.defaultValue.bodyValue = story.body;
-          pageInfo.other.defaultValue.urlValue = story.url;
-          pageInfo.other.defaultValue.publishValue = story.published;
-        
-          var categoryId = story.category === null ? null : parseInt(story.category);
-          var categoryList = handy.system.systemVariable.getConfig('categoryList');
+          pageInfo.other.defaultValue.titleValue = this.title;
+          pageInfo.other.defaultValue.bodyValue = this.body;
+          pageInfo.other.defaultValue.urlValue = this.url;
+          pageInfo.other.defaultValue.publishValue = this.published;
+          pageInfo.other.contentId = this.id;
+          pageInfo.other.contentType = contentType;
+          pageInfo.other.action = 'delete';
+
+          let categoryId = this.category === null ? null : parseInt(this.category);
+          let categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
 
-          var logDetail = {type: 'info', category: 'content', message: 'story opened for deletion. id: ' + urlId};
+          let logDetail = {type: 'info', category: 'content', message: contentType + ' opened for deletion. id: ' + this.id};
           handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
           story = null; // free up memory
           return;
-        });
-      });
+        }).bind(this));
+      }).bind(story));
     });
   });
 
@@ -840,65 +918,62 @@ module.exports = function(app){
   
 
   commentR.get('/:id', handy.user.checkPermission('content.Comment', ['Can view content']), function(req, res){
+    let contentType = 'comment';
+
     handy.system.prepGetRequest({
       info: {title: null},
       action: []
-    }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'comment display page - error in prepGetRequest'}); return; }
-      
-      var contentType = 'comment';
+      }, req, res, function(err, pageInfo){
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' display page - error in prepGetRequest'}); return;}
+
+      // get content from cache
+      let comment = new handy.content.Comment();
+
       pageInfo.siteinfo.path = '/' + contentType + pageInfo.siteinfo.path; // add back the mount point to the path
 
-      var urlId = _getUrlId(req, contentType);
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for display. id: ' + req.params.id}); 
-        return;
-      }
-      // get content from cache
-      var comment = new handy.content.Comment();
-
-      comment.load(urlId, 'id', function(err, result){
+      comment.load(pageInfo.siteinfo.path, 'url', (function(err, result){
         if(err){
           comment = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'comment could not be loaded. id: ' + comment.id}); 
-          return _endProcessingWithFail(err, req, res);
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display'}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
+        
+        pageInfo.other.destination = encodeURIComponent(pageInfo.siteinfo.path);
 
-        pageInfo.title = ('comment: '+ _.escape(comment.title) + ' - ' + _.escape(comment.body)).substr(0,40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
-        pageInfo.description = _.escape(comment.title) + '. ' + _.escape(comment.body.substr(0,130));
-        pageInfo.canonical = req.protocol + '://' + req.hostname + comment.url;
+        pageInfo.title = _.escape(this.title).substr(0, 40) + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        pageInfo.description = _.escape(this.title) + '. ' + _.escape(this.body.substr(0,130));
+        pageInfo.canonical = req.protocol + '://' + req.hostname + this.url;
         pageInfo.other.commentValue = {};
-        pageInfo.other.commentValue.title = _.escape(comment.title);
-        pageInfo.other.commentValue.link = comment.link;
-        pageInfo.other.commentValue.body = _.escape(comment.body).replace(/\r?\n/g, '<br/>');
-        pageInfo.other.commentValue.contentlist = comment.contentlist;
+        pageInfo.other.commentValue.title = _.escape(this.title);
+        pageInfo.other.commentValue.link = this.link;
+        pageInfo.other.commentValue.body = this.body;
+        pageInfo.other.commentValue.contentid = this.contentid;
       
-        // check if comment is published or deleted
-        !comment.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
-        comment.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-        if(!comment.published || comment.deleted){
-          handy.system.redirectBack(0, req, res);
+        // check if content is published or deleted
+        !this.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
+        this.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
+        if(!this.published || this.deleted){
+          handy.system.redirectBack(1, req, res);
           comment = null;
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not published or deleted. comment can not be displayed. id: ' + urlId});
+          handy.system.logger.record('warn', {req: req, category: 'content', message: contentType +  ' not displayed because not published or deleted. id: ' + this.id});
           return;
         }
-
+      
         // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
-        var uid = parseInt(req.session.user.id);
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+        let uid = parseInt(req.session.user.id);
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'edit', (function(err, result){
           if(err || !result){
             pageInfo.other.displayEditLink = false;
           } else {
             pageInfo.other.displayEditLink = true;
           }
 
-          var logDetail = {type: 'info', category: 'content', message: 'comment displayed. id: ' + comment.id};
+          let logDetail = {type: 'info', category: 'content', message: contentType + ' displayed. id: ' + this.id};
           handy.system.display(req, res, 'comment', pageInfo, logDetail);
           comment = null; // free up memory
           return;
-        });
-      });
+        }).bind(this));
+      }).bind(comment));
     });
   });
 
@@ -907,66 +982,64 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'comment edit page - error in prepGetRequest'}); return;}
+      let contentType = 'comment';
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
-      pageInfo.other.contentType = 'comment';
-      pageInfo.other.action = 'edit';
-    
-      var contentType = 'comment';
-      var uid = parseInt(req.session.user.id);
-      var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment to be edited not found. id: ' + req.params.id});
-        return;
-      }
-      pageInfo.other.contentId = urlId;
-    
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+      let uid = parseInt(req.session.user.id);
+      let url = '/' + contentType + '/' + req.params.id;
+      
+      // get content from database / cache
+      let comment = new handy.content.Comment();
+      comment.load(url, 'url', (function(err){
+        let contentId = this.id;
         if(err){
-          handy.system.logger.record('error', {error: err, message: 'error checking user permission to edit comment. id: ' + urlId}); 
-          return _endProcessingWithFail(err, req, res);
+          comment = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
-        if(!result){
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. comment can not be opened for editing. id: ' + urlId});
-          return _endProcessingWithFail(null, req, res);
-        }
-      
-        // get content from cache
-        var comment = new handy.content.Comment();
-        comment.load(urlId, 'id', function(err, result){
+
+        // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
           if(err){
-            comment = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading comment for editing. id: ' + comment.id}); 
-            return _endProcessingWithFail(err, req, res);
+            handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
+            return _endProcessingWithFail(err, req, res, 1);
           }
-        
-          // check if comment is deleted
-          comment.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-          if(comment.deleted){
-            handy.system.redirectBack(0, req, res);
+          if(!flag){
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied to open ' + contentType + ' for editing. id: ' + this.id});
+            return _endProcessingWithFail(null, req, res, 1);
+          }
+
+          // check if content is deleted
+          if(this.deleted){
+            handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted');
+            handy.system.redirectBack(1, req, res);
             comment = null;
-            handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment already deleted. comment can not be opened for editing. id: ' + urlId});
+            handy.system.logger.record('warn', {req: req, category: 'content', message: contentType + ' can not be edited. id: ' + this.id});
             return;
           }
 
-          pageInfo.title = 'Editing Comment - ' + comment.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+          pageInfo.title = 'Editing ' + contentType + ' - ' + this.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
           pageInfo.other.defaultValue = {};
-          pageInfo.other.defaultValue.titleValue = comment.title;
-          pageInfo.other.defaultValue.bodyValue = comment.body;
-          pageInfo.other.defaultValue.urlValue = comment.url;
-          pageInfo.other.defaultValue.publishValue = comment.published;
-        
-          var categoryId = comment.category === null ? null : parseInt(comment.category);
-          var categoryList = handy.system.systemVariable.getConfig('categoryList');
+          pageInfo.other.defaultValue.titleValue = this.title;
+          pageInfo.other.defaultValue.bodyValue = this.body;
+          pageInfo.other.defaultValue.urlValue = this.url;
+          pageInfo.other.defaultValue.categoryValue = parseInt(this.category);
+          pageInfo.other.defaultValue.publishValue = this.published;
+
+          pageInfo.other.contentId = this.id;
+          pageInfo.other.action = 'edit';
+          pageInfo.other.contentType = contentType;
+
+          let categoryId = this.category === null ? null : parseInt(this.category);
+          let categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
 
-          var logDetail = {type: 'info', category: 'content', message: 'comment opened for editing. id: ' + urlId};
+          let logDetail = {type: 'info', category: 'content', message: contentType + ' opened for editing. id: ' + this.id};
           handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
           comment = null; // free up memory
-        });
-      });
+        }).bind(this));
+      }).bind(comment));
     });
   });
 
@@ -975,66 +1048,63 @@ module.exports = function(app){
       info: {title: null},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'comment deletion page - error in prepGetRequest'}); return; }
-      
-      pageInfo.other.contentType = 'comment';
-      pageInfo.other.action = 'delete';
-    
-      var contentType = 'comment';
-      var uid = parseInt(req.session.user.id);
-      var urlId = _getUrlId(req, contentType); // get the content id (in the case where the url alias is provided)
-      if(urlId === undefined){
-        res.redirect('/notfound');
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment not found for deletion. id: ' + req.params.id});
-        return;
-      }
-      pageInfo.other.contentId = urlId;
-    
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
+      let contentType = 'comment';
+      let uid = parseInt(req.session.user.id);
+      let url = '/' + contentType + '/' + req.params.id;
+
+      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
+
+      // get content from database
+      let comment = new handy.content.Comment();
+      comment.load(url, 'url', (function(err){
         if(err){
-          handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete comment. id: ' + urlId}); 
-          return _endProcessingWithFail(err, req, res);
+          comment = null; // free up memory
+          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for deletion'}); 
+          return _endProcessingWithFail(err, req, res, 1);
         }
-        if(!result){
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. comment can not be opened for deletion. id: ' + urlId});
-          return _endProcessingWithFail(null, req, res);
-        }
-      
-        // get content from cache
-        var comment = new handy.content.Comment();
-        comment.load(urlId, 'id', function(err, result){
+
+        // check if user has the permissions to delete this content
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
           if(err){
-            comment = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading comment for deletion'}); 
-            return _endProcessingWithFail(err, req, res);
+            handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete ' + contentType});
+            return _endProcessingWithFail(err, req, res, 1);
           }
-        
-          // check if comment is deleted
-          comment.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-          if(comment.deleted){
-            handy.system.redirectBack(0, req, res);
+          if(!result){
+            handy.system.logger.record('warn', {req: req, category: 'content', message: 'permission denied. ' + contentType + ' can not be opened for deletion. id: ' + this.id});
+            return _endProcessingWithFail(null, req, res, 1);
+          }
+
+          // check if content is deleted
+          this.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
+          if(this.deleted){
+            handy.system.redirectBack(1, req, res);
             comment = null;
-            handy.system.logger.record('warn', {req: req, category: 'content', message: 'comment already deleted. comment can not be opened for deletion. id: ' + urlId});
+            handy.system.logger.record('warn', {req: req, category: 'content', message: contentType + ' already deleted. ' + contentType + ' can not be opened for deletion. id: ' + this.id});
             return;
           }
 
-          pageInfo.title = 'Delete Comment - ' + comment.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
+          pageInfo.title = 'Delete ' + contentType + ' - ' + this.title + ' | ' + handy.system.systemVariable.getConfig('siteName');
           pageInfo.other.defaultValue = {};
-          pageInfo.other.defaultValue.titleValue = comment.title;
-          pageInfo.other.defaultValue.bodyValue = comment.body;
-          pageInfo.other.defaultValue.urlValue = comment.url;
-          pageInfo.other.defaultValue.publishValue = comment.published;
-        
-          var categoryId = comment.category === null ? null : parseInt(comment.category);
-          var categoryList = handy.system.systemVariable.getConfig('categoryList');
+          pageInfo.other.defaultValue.titleValue = this.title;
+          pageInfo.other.defaultValue.bodyValue = this.body;
+          pageInfo.other.defaultValue.urlValue = this.url;
+          pageInfo.other.defaultValue.publishValue = this.published;
+
+          pageInfo.other.contentId = this.id;
+          pageInfo.other.contentType = contentType;
+          pageInfo.other.action = 'delete';
+
+          let categoryId = this.category === null ? null : parseInt(this.category);
+          let categoryList = handy.system.systemVariable.getConfig('categoryList');
           pageInfo.other.categoryDefault = categoryId === null ? {id: null, name: null, parent: null} : {id: categoryId, name: categoryList[categoryId].name, parent: categoryList[categoryId].parent};
           pageInfo.other.categoryOptions = handy.content.getCategorySelectOptions(pageInfo.other.categoryDefault, 'self');
-          
-          var logDetail = {type: 'info', category: 'content', message: 'comment opened for deletion. id: ' + urlId};
+
+          let logDetail = {type: 'info', category: 'content', message: contentType + ' opened for deletion. id: ' + this.id};
           handy.system.display(req, res, 'contentdisplay', pageInfo, logDetail);
-          comment = null;  // free up memory
-        });
-      });
+          comment = null; // free up memory
+          return;
+        }).bind(this));
+      }).bind(comment));
     });
   });
 
@@ -1047,38 +1117,40 @@ module.exports = function(app){
       action: []
       }, req, res, function(err, pageInfo){
       if(err){handy.system.logger.record('error', {error: err, message: 'category display page - error in prepGetRequest'}); return;}
-      
-      var contentType = 'category';
+      handy.content.getCategorySelectOptions({id:4}, 'parent');
+      let contentType = 'category';
+      let contentId = _getCategoryId(req);
 
-      var urlId = _getCategoryId(req, contentType);
-      if(urlId === undefined){
-        res.redirect('/notfound'); 
-        handy.system.logger.record('warn', {req: req, category: 'content', message: 'category not found. id: ' + req.params.id});
-        return;}
-      // get content from cache
-      var category = new handy.content.Category();
-      category.load(urlId, 'id', function(err, result){
+      // if contentId is null, stop processing
+      if(!contentId){
+        handy.system.logger.record('error', {error: new Error('content not found'), message: 'error loading category for display. id: ' + contentId}); 
+        return _endProcessingWithFail(err, req, res);  
+      }
+
+      // get content from database
+      let category = new handy.content.Category();
+      category.load(contentId, 'id', (function(err, result){
         if(err){
           category = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading category for display. id: ' + urlId}); 
+          handy.system.logger.record('error', {error: err, message: 'error loading category for display. id: ' + this.id}); 
           return _endProcessingWithFail(err, req, res);
         }
 
-        pageInfo.title = 'Category: ' + category.name + ' | ' + handy.system.systemVariable.getConfig('siteName');
         // check if category is deleted
-        category.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
-        if(category.deleted){
+        if(this.deleted){
+          handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted');
           handy.system.redirectBack(0, req, res);
+          handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted.  category can not be displayed. id: ' + this.id});
           category = null;
-          handy.system.logger.record('warn', {req: req, category: 'content', message: 'category already deleted.  category can not be displayed. id: ' + urlId});
           return;
         }
 
-        res.send('this will display the category page\n' + JSON.stringify(category, '\t'));
+        pageInfo.title = 'Category: ' + this.name + ' | ' + handy.system.systemVariable.getConfig('siteName');
+        res.send('this will display the category page\n' + JSON.stringify(this, '\t'));
         category = null; // free up memory
-        handy.system.logger.record('info', {req: req, category: 'content', message: 'category displayed. id: ' + urlId});
+        handy.system.logger.record('info', {req: req, category: 'content', message: 'category displayed. id: ' + this.id});
         return;
-      });
+      }).bind(category));
     });
   });
 
@@ -1114,8 +1186,8 @@ module.exports = function(app){
         var category = new handy.content.Category();
         category.load(urlId, 'id', function(err, result){
           if(err){
+            handy.system.logger.record('error', {error: err, message: 'error loading category for editing. id: ' + urlId}); 
             category = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading category for editing. id: ' + category.id}); 
             return _endProcessingWithFail(err, req, res);
           }
 
@@ -1310,10 +1382,10 @@ module.exports = function(app){
   app.get('/requestonetimelink', function(req, res){
     var pageInfo = {
       title: null,
-      config: systemVariable.get('config'),
+      config: handy.system.systemVariable.get('config'),
       user: req.session.user || {},
       siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
-      googleAnalyticsCode: systemVariable.getConfig('googleAnalyticsId'),
+      googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
     
@@ -1392,10 +1464,10 @@ module.exports = function(app){
   app.get('/onetimelogin', handy.user.requireAuthenticationStatus('unauthenticated'), function(req, res){
     var pageInfo = {
       title: null,
-      config: systemVariable.get('config'),
+      config: handy.system.systemVariable.get('config'),
       user: req.session.user || {},
       siteinfo: {protocol: req.protocol, host: req.hostname, path: req.path, query: req.query},
-      googleAnalyticsCode: systemVariable.getConfig('googleAnalyticsId'),
+      googleAnalyticsCode: handy.system.systemVariable.getConfig('googleAnalyticsId'),
       other: {}
     };
     
@@ -1428,7 +1500,7 @@ module.exports = function(app){
             }
             // set success message and ask user to set a new password
             handy.system.systemMessage.set(req, 'success', 'Please select a new password');
-            res.redirect('/password/reset');
+            res.redirect('/user/' + this.id + '/password/reset');
             handy.system.logger.record('info', {req: req, category: 'user', message: 'user one-time login successful. id: ' + testUser.id});
             testUser = null;  // free up memory
             return;
@@ -1468,14 +1540,6 @@ module.exports = function(app){
   
 };
 
-// gets the id of the content if the alias was provided
-function _getUrlId(req, contentType){
-  var alias = '/' + contentType + '/' + encodeURIComponent(req.params.id);
-  alias = alias.replace(/%2B/g, '+');  // ensure spaces are encoded with '+'
-  var urlId = _.isNaN(parseInt(req.params.id)) ? handy.system.getContentFromAlias(alias).id : parseInt(req.params.id);
-  return urlId;
-}
-
 // get the id of the category if the name is provided
 function _getCategoryId(req){
   // if id is already a number then just return that
@@ -1483,8 +1547,8 @@ function _getCategoryId(req){
     return parseInt(req.params.id);
   }
   
-  var categoryList = handy.system.systemVariable.getConfig('categoryList');
-  var id = null;
+  let categoryList = handy.system.systemVariable.getConfig('categoryList');
+  let id = null;
   _.forEach(categoryList, function(category, catId){
     if(category.name.toLowerCase() === req.params.id.toLowerCase()){
       id = catId;
@@ -1494,12 +1558,14 @@ function _getCategoryId(req){
 }
 
 
-function _endProcessingWithFail(err, req, res){
+function _endProcessingWithFail(err, req, res, redirectSteps){ 
+  redirectSteps = redirectSteps || 0;
+
   if(err){
     handy.system.systemMessage.set(req, 'danger', 'An error occured: ' + err.message);
   } else {
     handy.system.systemMessage.set(req, 'danger', 'You do not have permission to edit this content');
   }
-  handy.system.redirectBack(0, req, res); // redirect to previous page
+  handy.system.redirectBack(redirectSteps, req, res); // redirect to previous page (or how many previous as required)
   return;
 }

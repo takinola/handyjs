@@ -1,0 +1,12 @@
+form(name='org-user-provision', id='org-user-provision', method='post', action='/org-user-provision', role='form')
+  include ../components/csrf
+  
+    .page-header
+      h4 Invite new users
+
+    .form-group
+      label.control-label(for='orguserprovisionlist') Email adresses
+      textarea.form-control(id='orguserprovisionlist', name='orguserprovisionlist', rows='7', required)
+      span.help-block Please provide a list of email addresses for users you would like to invite to share in your organization's account. Multiple email addresses should be separated with commas ","
+    
+    button.btn.btn-primary(type='submit') Invite users

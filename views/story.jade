@@ -20,7 +20,7 @@ block content
         .col-md-offset-2.col-md-8.spacer
           form(role='form', id='commentForm', name='commentForm', method='post', action='/content/comment/null/create?destination=' + pageInfo.other.destination)
             include includes/components/csrf
-            input(type='hidden', name='contentlist', id='contentlist', value=pageInfo.other.storyValue.contentlist)
+            input(type='hidden', name='relatedto', id='relatedto', value=pageInfo.other.storyValue.contentid)
             input(type='checkbox', name='published', id='published', value='true', checked, style='display:none;')
             .form-group
               textarea.form-control(name='body', rows='5', placeholder='Add your comment', required)

@@ -38,8 +38,8 @@ mixin rolecheckbox(resource, permission, role, perm)
         each permit in perm[resourceKey]
           - if(permit.toLowerCase() === permission.toLowerCase())
             - checkStatus = true;
-  
-      input(type='checkbox', checked=checkStatus, disabled=disabledStatus, id=role+'_'+resource+'_'+permission, name=role+'_'+resource+'_'+permission)
+      - var separator = '$*$'
+      input(type='checkbox', checked=checkStatus, disabled=disabledStatus, id=role+separator+resource+separator+permission, name=role+separator+resource+separator+permission)
 
 form(name='permissionUpdate', id='permissionUpdate', action='/permissionupdate', method='post', role='form')
   include ../components/csrf.jade
