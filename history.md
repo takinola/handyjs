@@ -1,3 +1,6 @@
+2.0.2 / 06/16/2015
+* fixed foreign key check error that sometimes came up during installation
+
 2.0.1 / 06/14/2015
 NOTE: version 2.0.1 is a breaking change from previous versions
 * Upgraded to io.js in anticipation of Node.js merge

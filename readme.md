@@ -124,10 +124,11 @@ Handyjs can create periodic database backups which can be saved to the server or
 
 ---
 
-## Dependencies <a name='dependencies'></a><br/><br/>
-* iojs 2.3.0 or higher (with ES6 staging features enabled)
+## Dependencies<a name='dependencies'></a><br/><br/>
+Minimum requirements  
+* iojs 2.0.2 (with ES6 staging features enabled)
 * Redis 2.8
-* MySQL 5.6 or higher <br/><br/>
+* MySQL 5.6 <br/><br/>
 
 ---
 
@@ -251,7 +252,7 @@ http.createServer(app).listen(app.get('port'), function(){
 Because Handyjs manages some routes for projects (e.g. login, site configuration, etc) it may be useful to modify the default theming to match the rest of the project.
 CSS for theming is based on the [Bootstrap design framework](http://getbootstrap.com)
 
-Handyjs theming (ie header, footer, additional css or scripts) can be modified in the [site configuration](/configuration/theme)<br/><br/>
+Handyjs theming (ie header, footer, additional css or scripts) can be modified in the site configuration ("/configuration/theme")<br/><br/>
 
 ---
 ### MySQL database setup

@@ -977,7 +977,7 @@ function _createNewContent(req, res, destination){
           handy.system.redirectBack(0, req, res);  // redirect to previous page
           return;
         }
-  
+
         // redirect to the newly created content (or to the specified destination)
         !destination ? res.redirect(newContent.url) : res.redirect(destination);
         return;
@@ -1050,8 +1050,7 @@ function _editExistingContent(req, res, destination){
 
         // some properties ie 'creator' & 'organization' are immutable
         const immutableProperties = ['creator', 'organization']; 
-        let isImmutablePropertyFlag = immutableProperties.indexOf(parameter) < 0 ? true : false;
-
+        let isImmutablePropertyFlag = immutableProperties.indexOf(parameter) < 0 ? false : true;
         newContent[parameter] = isImmutablePropertyFlag ? newContent[parameter] : value;  // need to ensure the values have been converted to the correct type prior to this
       });
 

@@ -38,9 +38,9 @@ module.exports = function(app){
       res.send(handy.utility.generateRandomString(20));
       const pool = handy.system.systemVariable.get('pool');
       pool.getConnection(function(err, connection){
-        let query = 'SELECT organization FROM user';
+        let query = 'SELECT organization FROM user; SELECT id FROM user';
         connection.query(query, function(err, results){
-          console.log(typeof results[0].organization);
+          console.log(err, results);
         });
       });
 
@@ -747,6 +747,10 @@ module.exports = function(app){
         !this.published ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' is not published') : null;
         this.deleted ? handy.system.systemMessage.set(req, 'danger', 'This ' + contentType + ' has been deleted') : null;
         if(!this.published || this.deleted){
+          // redirect to previous page (not current page).  This is because of the situation
+          // where a user edits a page and sets it to 'unpublished'.  in this
+          // situation, the current page would be a redirect back to itself which
+          // would be an infinite loop
           handy.system.redirectBack(1, req, res);
           story = null;
           handy.system.logger.record('warn', {req: req, category: 'content', message: contentType +  ' not displayed because not published or deleted. id: ' + this.id});
@@ -793,7 +797,7 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
       let uid = parseInt(req.session.user.id);
-      let url = '/' + contentType + '/' + req.params.id;
+      let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
       
       // get content from database / cache
       let story = new handy.content.Story();
@@ -832,7 +836,6 @@ module.exports = function(app){
           pageInfo.other.defaultValue.urlValue = this.url;
           pageInfo.other.defaultValue.categoryValue = parseInt(this.category);
           pageInfo.other.defaultValue.publishValue = this.published;
-
           pageInfo.other.contentId = this.id;
           pageInfo.other.action = 'edit';
           pageInfo.other.contentType = contentType;
@@ -857,7 +860,7 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       let contentType = 'story';
       let uid = parseInt(req.session.user.id);
-      let url = '/' + contentType + '/' + req.params.id;
+      let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
 
       if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
 
@@ -986,8 +989,8 @@ module.exports = function(app){
       if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
       let uid = parseInt(req.session.user.id);
-      let url = '/' + contentType + '/' + req.params.id;
-      
+      let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
+
       // get content from database / cache
       let comment = new handy.content.Comment();
       comment.load(url, 'url', (function(err){
@@ -1050,7 +1053,7 @@ module.exports = function(app){
     }, req, res, function(err, pageInfo){
       let contentType = 'comment';
       let uid = parseInt(req.session.user.id);
-      let url = '/' + contentType + '/' + req.params.id;
+      let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
 
       if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
 

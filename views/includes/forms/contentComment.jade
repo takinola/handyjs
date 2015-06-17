@@ -5,8 +5,8 @@
 - var bodyValue = defaultValue.bodyValue || null
 - var urlValue = defaultValue.urlValue || ''
 - urlValue = urlValue.split('/').pop().toString('/')
-- var publishValue = defaultValue.publishValue || 1
-- publishValue = (publishValue === 1)
+- var publishValue = typeof defaultValue.publishValue === 'undefined' ? true : (defaultValue.publishValue === 1)
+
 - var contentType = pageInfo.other.contentType
 - var siteUrl = pageInfo.siteinfo.protocol + '://' + pageInfo.siteinfo.host + '/' + contentType.toLowerCase() + '/'
 - var contentId = pageInfo.other.contentId || null
