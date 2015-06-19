@@ -741,7 +741,7 @@ NOTE: task names are unique.  To prevent accidentally clobbering an existing tas
 
 Cron is maintained in two separate places in systemVariable; cronTask and config.cronRecord.  
 
-cronTask is formatted as {'task name': task function}.  This information is not persisted in the database and is reset each time the application is restarted
+cronTask is formatted as {'task name': task function}.  This information is not persisted in the database (because functions cannot be saved and reloaded from a database) and is reset each time the application is restarted
 
 cronRecord is formatted as {task name: {freq: frequency, lastrun: time last run}}.  This information is stored in the database and is retrieved each time the app is started
 
@@ -751,24 +751,24 @@ Obviously cronTask and cronRecord must be kept in sync.  This is done by functio
 * @param {string} taskName - unique name to identify task. use human recognizable name e.g. 'nightly backup'
 * @param {function} task - task to be run.
   * pass as 'null' if just updating the frequency
-  * task will be run as task.bind(null, req, res)(callback)
-  * task needs to return callback(null, {err: <any error>, key1: <string>, key2: <string>})
+  * task will be run as task(req, res, taskName)
+  * task needs to return a promise which resolves to ({err: errorValue, id: taskName, message: messageValue)
   * err should contain error objects
-  * if no err, then there must be at least one key/value pair returned e.g. {'newsletter': 'sent succesfully'}  
-* @param {string / integer} freq - frequency at which the task needs to be run.  specified in minutes (also accepts
-   'hourly', 'daily', 'weekly')
+* @param {string / integer} freq - frequency at which the task needs to be run.  specified in minutes (also accepts 'hourly', 'daily', 'weekly')
 
 *example*
 ```javascript
-function longRunningProcess(callback){
-  // do stuff
-  return callback(null, {err: errorValue, result: resultValue});
+function periodicProcess(req, res, id){
+  return new Promise(function(resolve, reject){
+    // do stuff
+    return resolve({id: id, err: errorValue, message: messageValue})
+  });
 }
 
 /* this needs to run each time the app starts or restarts
     usually a good idea to run this right after bootstrap.initialize
 */
-handy.system.addCronTask('myapp_cronLongRunningProcess', longRunningProcess, 'daily', callback);
+handy.system.addCronTask('myapp_periodic_process', periodicProcess, 'daily', callback);
 
 ```
 <br/>
@@ -783,8 +783,8 @@ Remove cron task
 
 *example*
 ```javascript
-let removeFunction = 'myapp_cronLongRunningProcess';
-handy.system.removeCronTask(removeFunction, callback); // myapp_cronLongRunningProcess will no longer be executed on cron 
+let removeFunction = 'myapp_periodic_process';
+handy.system.removeCronTask(removeFunction, callback); // myapp_periodic_process will no longer be executed on cron 
 ```
 <br/>
 
@@ -796,10 +796,20 @@ Backup database.  The backup is either sent to an email address or stored in a d
 *arguments*
  * @param {object} req - express request object
  * @param {object} res - express response object
+ * @param {string} id - (optional) id used in cron calls
 
 *example*
 ```javascript
-handy.system.backupDatabase(req, res, callback);
+handy.system.backupDatabase(req, res, id);
+// returns, for example,
+// {
+//  id: 'daily backup',
+//  err: null,
+//  message: 'database backup successfull'
+// }
+
+}
+ 
 ```
 <br/>
 
@@ -839,11 +849,12 @@ Define system logging.  Records system logs and generates reports
   * warn - irregular activity e.g. 404 error, login failure
   * error - system error e.g. database read error, 
 * @params {object} record - log object
-  * format: logObject = {req: <express req object>, category: <log category e.g. "user" or "cron">, message: <descriptive message>), 
-  * if logging an error, format is logObject = {error: <error object>, message: <description>}
+  * format: logObject = {req: express req object, category: log category e.g. "user" or "cron", message: descriptive message), 
+  * if logging an error, format is logObject = {error: error object, message: description}
+ * @params {string} id (optional) - id used in cron calls
  * @params {string/int} period (optional) - period for which the log report will cover 
   * format: (integer representing age in hours or string options 'hourly', 'daily', 'weekly', 'monthly')
-  * if ommitted, period will use the systemVariable value of 'reportFreq'
+  * if omitted, period will use the systemVariable value of 'reportFreq'
 
 *example*
 ```javascript
@@ -861,7 +872,7 @@ handy.system.logger.record(level, record);
 
 // generate log report
 let period = 'daily';  // generate report for the previous 24 hours
-handy.system.logger.report(req, res, period, callback);  // log report is generated and sent to the destination assigned in the system settings
+handy.system.logger.report(req, res, id, period);  // log report is generated and sent to the destination assigned in the system settings
 
 ```
 <br/>
@@ -1850,13 +1861,14 @@ Submit sitemap to search engines (Google and Bing)
 *arguments*  
  * @param {object} req - express request object
  * @param {object} res - express response object
+ * @param {string} id - (optional) id used in cron calls
 
 *returns*  
-This function is meant to be run as a cron task therefore the format of the callback is callback(null, err, result)
+This function is meant to be run as a cron task therefore it returns a promise which resolves to {id: id, err: err, message: message}
 
 *example*  
 ```javascript
-handy.content.submitXMLSiteMap(req, res, callback)
+handy.content.submitXMLSiteMap(req, res, id)
 ```
 <br/>
 

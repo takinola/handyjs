@@ -824,8 +824,8 @@ module.exports = function(app){
   
   
   app.post('/sitemapsetting', handy.user.checkPermission('system.System', ['Can alter system configuration']), function(req, res){
-    req.body = handy.utility.trimFormTextEntries(req.body); // trim text entries
     var update = {};
+
     // checkboxes are ommited from req.body when their value is false so need to add it back
     update.sitemapSubmit = req.body.sitemapSubmit === 'true' ? true : false;
     delete req.body.sitemapSubmit;  // remove from req.body before processing the rest of form

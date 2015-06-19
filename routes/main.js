@@ -311,8 +311,7 @@ module.exports = function(app){
   app.get('/sitemap.xml', handy.system.recordUrlHistory(), function(req, res){
     // get all content urls
     var alias = handy.system.systemVariable.getConfig('alias');
-    var siteUrls = Object.keys(alias);
-    
+
     // get sitemap configuration
     var sitemapConfig = handy.system.systemVariable.getConfig('sitemapConfig');
     
@@ -321,9 +320,9 @@ module.exports = function(app){
     
     var xml = '<?xml version="1.0" encoding="UTF-8"?>';
     xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
-    siteUrls.forEach(function(val, key){
+    _.forEach(alias, function(val, key){
 
-      var contentType = val.split('/')[1];
+      var contentType = val.type;
       // since we are not sure what case the keys of sitemapConfig.content are, we need to do a lowercase compare
       var freq
         , priority
@@ -337,7 +336,7 @@ module.exports = function(app){
       });
       
       xml += '<url>';
-      xml += '<loc>'+ baseUrl + val + '</loc>';
+      xml += '<loc>'+ baseUrl + val.url + '</loc>';
       xml += '<changefreq>'+ freq +'</changefreq>';
       xml += '<priority>'+ priority +'</priority>';
       xml += '</url>';
