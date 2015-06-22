@@ -1,6 +1,6 @@
 {
   "name": "handy",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Handy is a web application template for Node.js.  It's design goals are simplicity, speed and extensibility.",
   "main": ".lib/handy.js",
   "scripts": {

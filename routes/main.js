@@ -54,7 +54,7 @@ module.exports = function(app){
       info: {title: 'Test scenarios'},
       action: []
     }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'test',}); return;}
       
       url.resolve('/testpageunauth', '/crazypage.html');
 
@@ -727,7 +727,7 @@ module.exports = function(app){
       story.load(pageInfo.siteinfo.path, 'url', (function(err, result){
         if(err){
           story = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display'}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display'}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
         
@@ -761,7 +761,7 @@ module.exports = function(app){
         this.getRelatedContent('comment', (function(err, commentList){
           if(err){
             pageInfo.other.comments = {0:{text: 'comments could not be retrieved at this time', creator: null}};
-            handy.system.logger.record('error', {error: err, message: 'error getting related comments for ' + contentType + '. id: ' + this.id});
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error getting related comments for ' + contentType + '. id: ' + this.id});
           } else {
             commentList.forEach(function(comm, commId){
               pageInfo.other.comments[commId] = {text: _.escape(comm.comment.body).replace(/\r?\n/g, '<br/>'), creator: comm.user.name};
@@ -793,7 +793,7 @@ module.exports = function(app){
       action: []
     }, req, res, function(err, pageInfo){
       let contentType = 'story';
-      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
       let uid = parseInt(req.session.user.id);
       let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
@@ -804,14 +804,14 @@ module.exports = function(app){
         let contentId = this.id;
         if(err){
           story = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
 
         // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
         handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
           if(err){
-            handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
             return _endProcessingWithFail(err, req, res, 1);
           }
           if(!flag){
@@ -861,21 +861,21 @@ module.exports = function(app){
       let uid = parseInt(req.session.user.id);
       let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
 
-      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: contentType + ' deletion page - error in prepGetRequest'}); return; }
 
       // get content from database
       let story = new handy.content.Story();
       story.load(url, 'url', (function(err){
         if(err){
           story = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for deletion'}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for deletion'}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
 
         // check if user has the permissions to delete this content
         handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
           if(err){
-            handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete ' + contentType});
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to delete ' + contentType});
             return _endProcessingWithFail(err, req, res, 1);
           }
           if(!result){
@@ -926,7 +926,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' display page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: contentType + ' display page - error in prepGetRequest'}); return;}
 
       // get content from cache
       let comment = new handy.content.Comment();
@@ -936,7 +936,7 @@ module.exports = function(app){
       comment.load(pageInfo.siteinfo.path, 'url', (function(err, result){
         if(err){
           comment = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display'}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display'}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
         
@@ -985,7 +985,7 @@ module.exports = function(app){
       action: []
     }, req, res, function(err, pageInfo){
       let contentType = 'comment';
-      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' edit page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: contentType + ' edit page - error in prepGetRequest'}); return;}
       
       let uid = parseInt(req.session.user.id);
       let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
@@ -996,14 +996,14 @@ module.exports = function(app){
         let contentId = this.id;
         if(err){
           comment = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
 
         // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
         handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
           if(err){
-            handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
             return _endProcessingWithFail(err, req, res, 1);
           }
           if(!flag){
@@ -1054,21 +1054,21 @@ module.exports = function(app){
       let uid = parseInt(req.session.user.id);
       let url = '/' + contentType + '/' + encodeURIComponent(req.params.id);
 
-      if(err){handy.system.logger.record('error', {error: err, message: contentType + ' deletion page - error in prepGetRequest'}); return; }
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: contentType + ' deletion page - error in prepGetRequest'}); return; }
 
       // get content from database
       let comment = new handy.content.Comment();
       comment.load(url, 'url', (function(err){
         if(err){
           comment = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading ' + contentType + ' for deletion'}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for deletion'}); 
           return _endProcessingWithFail(err, req, res, 1);
         }
 
         // check if user has the permissions to delete this content
         handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
           if(err){
-            handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete ' + contentType});
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to delete ' + contentType});
             return _endProcessingWithFail(err, req, res, 1);
           }
           if(!result){
@@ -1118,14 +1118,14 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'category display page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'category display page - error in prepGetRequest'}); return;}
       handy.content.getCategorySelectOptions({id:4}, 'parent');
       let contentType = 'category';
       let contentId = _getCategoryId(req);
 
       // if contentId is null, stop processing
       if(!contentId){
-        handy.system.logger.record('error', {error: new Error('content not found'), message: 'error loading category for display. id: ' + contentId}); 
+        handy.system.logger.record('error', {error: new Error('content not found'), req: req, category: 'content', message: 'error loading category for display. id: ' + contentId}); 
         return _endProcessingWithFail(err, req, res);  
       }
 
@@ -1134,7 +1134,7 @@ module.exports = function(app){
       category.load(contentId, 'id', (function(err, result){
         if(err){
           category = null; // free up memory
-          handy.system.logger.record('error', {error: err, message: 'error loading category for display. id: ' + this.id}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading category for display. id: ' + this.id}); 
           return _endProcessingWithFail(err, req, res);
         }
 
@@ -1161,7 +1161,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'category edit page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'category edit page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'category';
       pageInfo.other.action = 'edit';
@@ -1177,7 +1177,7 @@ module.exports = function(app){
       pageInfo.other.contentId = urlId;
       handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
         if(err){
-          handy.system.logger.record('error', {error: err, message: 'error checking user permission to edit category. id: ' + urlId}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to edit category. id: ' + urlId}); 
           return _endProcessingWithFail(err, req, res);
         }
         if(!result){
@@ -1188,7 +1188,7 @@ module.exports = function(app){
         var category = new handy.content.Category();
         category.load(urlId, 'id', function(err, result){
           if(err){
-            handy.system.logger.record('error', {error: err, message: 'error loading category for editing. id: ' + urlId}); 
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading category for editing. id: ' + urlId}); 
             category = null; // free up memory
             return _endProcessingWithFail(err, req, res);
           }
@@ -1225,7 +1225,7 @@ module.exports = function(app){
       info: {title: null},
       action: []
       }, req, res, function(err, pageInfo){
-      if(err){handy.system.logger.record('error', {error: err, message: 'category deletion page - error in prepGetRequest'}); return;}
+      if(err){handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'category deletion page - error in prepGetRequest'}); return;}
       
       pageInfo.other.contentType = 'category';
       pageInfo.other.action = 'delete';
@@ -1253,7 +1253,7 @@ module.exports = function(app){
         category.load(urlId, 'id', function(err, result){
           if(err){
             category = null; // free up memory
-            handy.system.logger.record('error', {error: err, message: 'error loading category for deletion'}); 
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading category for deletion'}); 
             return _endProcessingWithFail(err, req, res);
           }
 
@@ -1315,7 +1315,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', err.message);
         res.redirect('/');
         verifyUser = null;  // free up memory
-        handy.system.logger.record('error', {error: err, message: 'error verifying one-time link'}); 
+        handy.system.logger.record('error', {error: err, req: req, category: 'user', message: 'error verifying one-time link'}); 
         return;
       }
 
@@ -1328,7 +1328,7 @@ module.exports = function(app){
               handy.system.systemMessage.set(req, 'danger', err.message);
               res.redirect('/');
               verifyUser = null;  // free up memory
-              handy.system.logger.record('error', {error: err, message: 'error logging user in after verifying one-time link. id: ' + verifyUser.id}); 
+              handy.system.logger.record('error', {error: err, req: req, category: 'user', message: 'error logging user in after verifying one-time link. id: ' + verifyUser.id}); 
               return;
             }
             handy.user.postUserVerificationProcessing([this.id], (function(err){
@@ -1336,7 +1336,7 @@ module.exports = function(app){
                 handy.system.systemMessage.set(req, 'danger', 'Your email address has been verified but an error occured with post verification processing: ', err);
                 res.redirect('/');
                 verifyUser = null;  // free up memory
-                handy.system.logger.record('error', {error: err, message: 'error with post verification processing after verifying one-time link. id: ' + verifyUser.id}); 
+                handy.system.logger.record('error', {error: err, req: req, category: 'user', message: 'error with post verification processing after verifying one-time link. id: ' + verifyUser.id}); 
                 return;
               }
               // set success message
@@ -1401,7 +1401,7 @@ module.exports = function(app){
         handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
         res.redirect('/');
         verifyUser = null;  // free up memory
-        handy.system.logger.record('error', {error: err, message: 'error loading user requesting one-time link. id: ' + verifyUser.id}); 
+        handy.system.logger.record('error', {error: err, req: req, category: 'user', message: 'error loading user requesting one-time link. id: ' + verifyUser.id}); 
         return;
       }
       // generate one-time link
@@ -1409,7 +1409,7 @@ module.exports = function(app){
         if(err){
           handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
           res.redirect('/');
-          handy.system.logger.record('error', {error: err, message: 'error creating one-time link. id: ' + verifyUser.id}); 
+          handy.system.logger.record('error', {error: err, req: req, category: 'user',  message: 'error creating one-time link. id: ' + verifyUser.id}); 
           verifyUser = null;  // free up memory
           return;
         }
@@ -1418,7 +1418,7 @@ module.exports = function(app){
           if(err){
             handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Requested email was not sent!');
             res.redirect('/');
-            handy.system.logger.record('error', {error: err, message: 'error saving user account after generating one-time link. id: ' + verifyUser.id});
+            handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error saving user account after generating one-time link. id: ' + verifyUser.id});
             verifyUser = null;  // free up memory 
             return;
           }
@@ -1442,7 +1442,7 @@ module.exports = function(app){
             if(err){
               handy.system.systemMessage.set(req, 'danger', 'Something went wrong.  Verification email was not sent');
               res.redirect('/');
-              handy.system.logger.record('error', {error: err, message: 'error sending email to user after generating one-time link. id: ' + verifyUser.id}); 
+              handy.system.logger.record('error', {error: err, req: req, category: 'user', message: 'error sending email to user after generating one-time link. id: ' + verifyUser.id}); 
               verifyUser = null;  // free up memory
               return;
             }
@@ -1496,7 +1496,7 @@ module.exports = function(app){
             if(err){
               handy.system.systemMessage.set(req, 'danger', err.message);
               res.redirect('/');
-              handy.system.logger.record('error', {error: err, message: 'error logging in user after one-time login verification successful. id: ' + testUser.id});
+              handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error logging in user after one-time login verification successful. id: ' + testUser.id});
               testUser = null;  // free up memory 
               return;
             }
