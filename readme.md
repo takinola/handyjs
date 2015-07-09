@@ -2207,6 +2207,24 @@ let bobEmail = 'bob@gmail.com';
 let carolEmail = 'carol.gmail.com';
 handy.utlity.validateEmailAddress(bobEmail);  // true
 handy.utlity.validateEmailAddress(carolEmail);  // false
+```
+<br/>
+
+---
+
+### validateUrl
+Validate urls to check if they are valid.  Returns true or false.  
+Checks to see if the url has the format "http://*" or "https://*"
+
+*arguments*  
+* @param {string} url - url to be validated
+
+*example*  
+```javascript
+let goodUrl = 'http://www.me.com';
+let badUrl = 'http:www.me.com';
+handy.utlity.validateUrl(goodUrl);  // true
+handy.utlity.validateUrl(badUrl);  // false
 
 ```
 <br/><br/>

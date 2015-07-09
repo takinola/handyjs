@@ -1,3 +1,8 @@
+2.0.5 06/28/2015
+---
+* increased table size for systemconfig
+* enabled support for TEXT, BLOB (and related data types) in content type definitions
+
 2.0.4 06/21/2015
 ---
 * minor bug fixes

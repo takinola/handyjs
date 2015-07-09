@@ -19,7 +19,7 @@ div.spacer {
 
 /* stretch to fill screen height */
 div.fill-screen-height{
-  min-height: calc(100% - 220px - 70px);
+  min-height: calc(100vh - 224px - 51px);
   padding-top: 20px;
 }
 
