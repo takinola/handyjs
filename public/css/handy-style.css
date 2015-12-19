@@ -56,7 +56,7 @@ div.footer_bottom{
   text-align: center;
 }
 
-/****** Configuration Page: Add left-tab functionality which is missing in Bootstrap 3 ******/
+/****** Configuration Page > Account Settings > Email Templates: Add left-tab functionality which is missing in Bootstrap 3 ******/
 .tabs-below > .nav-tabs,
 .tabs-right > .nav-tabs,
 .tabs-left > .nav-tabs {

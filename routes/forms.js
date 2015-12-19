@@ -316,10 +316,6 @@ module.exports = function(app){
         });
       }));
     }
-
-
-
-    
   });
 
 
@@ -994,13 +990,18 @@ function _editExistingContent(req, res, destination){
   let uid = parseInt(req.session.user.id);
   let contentType = req.params.type.toLowerCase();
   let actionType = 'edit';
+
+  // req.params.id can be the content id or the url path.
+  // the next line assumes it is always the content id, which is no longer always the case
+  // instead, the url is reconstructed and used as the unique identifier of the content
   let contentId = parseInt(req.params.id);
   let beginPath = '/' + contentType + '/';
+  let url = beginPath + encodeURIComponent(req.params.id);
 
   let newContent = handy.content.createNewInstance(contentType);
 
   // load from the database
-  newContent.load(contentId, 'id', function(err){
+  newContent.load(url, 'url', function(err){
     if(err){
       newContent = null;  // free up memory
       handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
@@ -1010,7 +1011,7 @@ function _editExistingContent(req, res, destination){
     }
 
     // check if user has the permission to perform edit
-    handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, newContent.id, actionType, function(err, flag){
+    handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, newContent.id, 'id', actionType, function(err, flag){
       if(err){
         handy.system.systemMessage.set(req, 'danger', 'Error editing ' + contentType + ': ' + err.message);
         handy.system.redirectBack(0, req, res);  // redirect to previous page
@@ -1106,10 +1107,17 @@ function _deleteExistingContent(req, res, destination){
   let uid = parseInt(req.session.user.id);
   let contentType = req.params.type.toLowerCase();
   let actionType = 'delete';
-  let contentId = parseInt(req.params.id);
   destination = destination || '/welcomepage';
 
-  loadContent(contentType, contentId)
+  // req.params.id can be the content id or the url path.
+  // the next line assumes it is always the content id, which is no longer always the case
+  // instead, the url is reconstructed and used as the unique identifier of the content
+  let contentId = parseInt(req.params.id);
+  let beginPath = '/' + contentType + '/';
+  let url = beginPath + encodeURIComponent(req.params.id);
+
+
+  loadContent(contentType, url)
   .then(checkUserPermissions)
   .then(deleteCategoryTypeContent)
   .then(deleteNonCategoryTypeContent)
@@ -1122,11 +1130,11 @@ function _deleteExistingContent(req, res, destination){
   });
 
 
-  function loadContent(type, id){
+  function loadContent(type, url){
     return new Promise(function(resolve, reject){
       let content = handy.content.createNewInstance(type);
       // get original values from database
-      content.load(id, 'id', function(err){
+      content.load(url, 'url', function(err){
         if(err){
           let userMessage = 'Error occured during ' + actionType + ' of ' + contentType + ': ' + err.message;
           let logMessage = 'Error loading ' + contentType + ' to be ' + actionType + '. id: ' + contentId;
@@ -1140,7 +1148,7 @@ function _deleteExistingContent(req, res, destination){
 
   function checkUserPermissions(content){
     return new Promise(function(resolve, reject){
-      handy.user.checkUserHasSpecificContentPermission(res, res, uid, contentType, content.id, actionType, function(err, permitted){
+      handy.user.checkUserHasSpecificContentPermission(res, res, uid, contentType, content.id, 'id', actionType, function(err, permitted){
         if(err){
           let userMessage = 'Error occured during ' + actionType + ' of ' + contentType + ': ' + err.message;
           let logMessage = 'error checking permission for user to ' + actionType + ' ' + contentType + '. id: ' + contentId;

@@ -1,3 +1,12 @@
+3.0.0 12/17/2015
+----
+* Fixed bug in routes/forms.js which expected req.params.id to always be a number (which is no longer the case as it is now often the path)
+* added support for TinyMCE editor on forms
+* added '/internalerror' path
+* modified function user.checkUserHasSpecificContentPermission to include the id type of the content so that it is possible to pass urls as well as numeric ids to the function
+* fixed bug where hamburger menu in the theme header (only visible on small viewports) does not expand to show items under it
+
+
 2.0.5 06/28/2015
 ---
 * increased table size for systemconfig

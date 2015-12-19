@@ -305,10 +305,14 @@ This page provides a graphical UI to assign permissions and maintain the access 
 This page provides access to the site theme settings
 
 #### /accessdenied
-This is the default 403 page.  A custom 403 error page can be specified in the site settings
+This is the default 403 page.  Path to a custom 403 error page can be specified in the site settings
+A 403 view should be created and made available for the project otherwise invoking next(err) (when err.status === 403) will not have a view to render it.  This view must be named '403accessdenied.jade' in order to be recognized by the handy system errorHandler.  The drawback with this setup is that there are now two 403 views (one built into handyjs and the other for the project).  This can be mitigated by reusing the same template for both so that there is no visual difference.  However, if you wish to only use the built-in 403 page, then simply redirect the request to '/accessdenied' as needed 
 
 #### /notfound
-This is the default 404 page.  Acustom 404 error page can be specified in the site settings
+This is the default 404 page.  Path to a custom 404 error page can be specified in the site settings
+
+#### /internalerror
+A 500 view should be created and made available for the project otherwise invoking next(err) (when err.status === 500) will not have a view to render it.  This view must be named '500internalerror.jade' in order to be recognized by the handy system errorHandler.  The drawback with this setup is that there are now two 500 views (one built into handyjs and the other for the project).  This can be mitigated by reusing the same template for both so that there is no visual difference.  However, if you wish to only use the built-in 500 page, then simply redirect the request to '/internalerror' as needed 
 
 #### /cron
 This is the path to activate cron.  Each site has a random cron path (e.g. /cron/random_string) to provide some security against DOS attack via cron
@@ -914,6 +918,7 @@ display a page using the site theme settings
 // userprofile.jade is the view file
 // pageInfo is an object that contains the variables to be passed to the view
 // pageInfo.theme may also specify a local jade file to override the site theme settings
+// pageInfo.tinymce = true - enables TinyMCE on any textarea with class of "text-editor"
 // logDetail contains the log information
 // {type: 'story', category: 'view', message: 'displaying story id 4'}
 
@@ -1435,17 +1440,19 @@ Check if user has the permission to modify/delete this specific content i.e. the
  * @param {object} res - express response object
  * @param {integer} uid - user id
  * @param {string} contentType - content type
- * @param {integer} urlId - content id
+ * @param {integer} contentId - content id
+ * @param {string} contentIdType - type of content id e.g. 'url', 'id', etc
  * @param {string} actionType - type of action being performed i.e. 'edit' or 'delete'
 
 *example*
 ```javascript
 let uid = 56; // id of the user whose permissions are being checked
 let contentType = 'story';  // type of content
-let urlId = 25; // id of content
+let contentId = 25; // id of content
+let contentIdType = 'id';  // the content id references the actual id of the content
 let actionType = 'delete';  // action being performed on the content
 
-handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, actionType, function(err, flag){
+handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, contentIdType, actionType, function(err, flag){
   console.log(flag); // displays "true" if user has the appropriate permissions, otherwise "false"
 });
 ```

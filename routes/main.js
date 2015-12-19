@@ -287,6 +287,21 @@ module.exports = function(app){
       }
     });
   });
+
+  // Internal error page
+  app.get('/internalerror', function(req, res){
+    handy.system.prepGetRequest({
+      info: {title: 'Internal Error | ' + handy.system.systemVariable.getConfig('siteName')},
+      action: []
+    }, req, res, function(err, pageInfo){
+      if(err){handy.system.logger.record('error', {error: err, message: 'internal error page - error in prepGetRequest'}); return;}
+      
+      res.statusCode = 500;
+      var logDetail = {type: 'warn', category: 'system', message: '500 internal error'};
+      handy.system.display(req, res, '500internalerror', pageInfo, logDetail);
+      return;
+    });
+  });
   
   // run cron
   app.get('/cron/:path', function(req, res){
@@ -770,7 +785,7 @@ module.exports = function(app){
 
           // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
           let uid = parseInt(req.session.user.id);
-          handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'edit', (function(err, result){
+          handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'id', 'edit', (function(err, result){
             if(err || !result){
               pageInfo.other.displayEditLink = false;
             } else {
@@ -802,6 +817,8 @@ module.exports = function(app){
       let story = new handy.content.Story();
       story.load(url, 'url', (function(err){
         let contentId = this.id;
+        let contentIdType = 'id';
+
         if(err){
           story = null; // free up memory
           handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
@@ -809,7 +826,7 @@ module.exports = function(app){
         }
 
         // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, contentIdType, 'edit', (function(err, flag){
           if(err){
             handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
             return _endProcessingWithFail(err, req, res, 1);
@@ -873,7 +890,7 @@ module.exports = function(app){
         }
 
         // check if user has the permissions to delete this content
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'id', 'delete', (function(err, result){
           if(err){
             handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to delete ' + contentType});
             return _endProcessingWithFail(err, req, res, 1);
@@ -963,7 +980,7 @@ module.exports = function(app){
       
         // check if user has rights to edit this content (used to decide to display the edit/delete link next to the content)
         let uid = parseInt(req.session.user.id);
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'edit', (function(err, result){
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'id', 'edit', (function(err, result){
           if(err || !result){
             pageInfo.other.displayEditLink = false;
           } else {
@@ -994,6 +1011,8 @@ module.exports = function(app){
       let comment = new handy.content.Comment();
       comment.load(url, 'url', (function(err){
         let contentId = this.id;
+        let contentIdType = 'id';
+
         if(err){
           comment = null; // free up memory
           handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for editing. id: ' + this.id}); 
@@ -1001,7 +1020,7 @@ module.exports = function(app){
         }
 
         // check if the user has the permission to edit this content (ie general editing permission for this type of content or editing own content)
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, 'edit', (function(err, flag){
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, contentId, contentIdType, 'edit', (function(err, flag){
           if(err){
             handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error loading ' + contentType + ' for display. id: ' + this.id}); 
             return _endProcessingWithFail(err, req, res, 1);
@@ -1066,7 +1085,7 @@ module.exports = function(app){
         }
 
         // check if user has the permissions to delete this content
-        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'delete', (function(err, result){
+        handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, this.id, 'id', 'delete', (function(err, result){
           if(err){
             handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to delete ' + contentType});
             return _endProcessingWithFail(err, req, res, 1);
@@ -1175,7 +1194,7 @@ module.exports = function(app){
         return;
       }
       pageInfo.other.contentId = urlId;
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'edit', function(err, result){
+      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'id', 'edit', function(err, result){
         if(err){
           handy.system.logger.record('error', {error: err, req: req, category: 'content', message: 'error checking user permission to edit category. id: ' + urlId}); 
           return _endProcessingWithFail(err, req, res);
@@ -1239,7 +1258,7 @@ module.exports = function(app){
         return;
       }
       pageInfo.other.contentId = urlId;
-      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'delete', function(err, result){
+      handy.user.checkUserHasSpecificContentPermission(req, res, uid, contentType, urlId, 'id', 'delete', function(err, result){
         if(err){
           handy.system.logger.record('error', {error: err, message: 'error checking user permission to delete category. id: ' + urlId}); 
           return _endProcessingWithFail(err, req, res);
