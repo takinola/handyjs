@@ -6,6 +6,7 @@ var expect = require('expect.js')
   , handy = require('../lib/handy')
   ;
   
+  
 describe('Content.js test suite', function(){
   it('Check if Content methods publish and unpublish work', function(done){
     var story = new handy.content.Story();
