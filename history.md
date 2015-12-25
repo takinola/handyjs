@@ -1,3 +1,7 @@
+3.0.1 12/24/2015
+---
+* minor bug fixes
+
 3.0.0 12/17/2015
 ----
 * Fixed bug in routes/forms.js which expected req.params.id to always be a number (which is no longer the case as it is now often the path)
