@@ -1,3 +1,8 @@
+3.0.2
+---
+Modified express parameters in order to support posting of content (> 1mb) in forms
+
+
 3.0.1 12/24/2015
 ---
 * minor bug fixes
