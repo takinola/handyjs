@@ -1,4 +1,4 @@
-3.0.2
+3.0.3
 ---
 Modified express parameters in order to support posting of content (> 1mb) in forms
 
